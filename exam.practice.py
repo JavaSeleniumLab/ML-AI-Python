@@ -41,6 +41,8 @@ class MyClass:
         print({1,2,3} | {3,4,5})
         print(len([1, 3, 'a']))
 
+
+
 # To run all code in the class:
 if __name__ == "__main__":
     MyClass().run()
