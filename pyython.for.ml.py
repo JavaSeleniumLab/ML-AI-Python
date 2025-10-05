@@ -1,9 +1,5 @@
-import numpy as np
-import pandas as p
-import scipy as sp
-from scipy import stats
-import matplotlib.pyplot as plt
-
+import numpy as np 
+import pandas as pd
 
 #Creating arrays
 arr = np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15])
@@ -67,3 +63,81 @@ print(np.char.lower(string)) #Convert string to lowercase
 print("===================================") 
 print(np.char.replace(string, "World", "Everyone")) #Replace substring 
 print("===================================")  
+
+# OCTOBER 5TH -2025: 2 DIMENSIONAL ARRAYS
+arr_2d = np.array([[1,2,3],[4,5,6],[7,8,9]])
+print(arr_2d)
+print(arr_2d.shape) #Shape of the array
+print(arr_2d.ndim) #Number of dimensions    
+
+# Accessing elements
+print(arr_2d[0,0]) #First row, first column 
+print("===================================")
+# 3 dimensional array
+arr_3d = np.array([[[1,2,3],[4,5,6]],[[7,8,9],[10,11,12]],[[13,14,15],[16,17,18]]])
+print(arr_3d)
+print("===================================")
+arr_3d[1,1,1] = 99 #Modify element
+print(arr_3d)
+print("===================================")
+#Slicing arrays 
+print(arr_2d[0:2,1:3]) #First two rows, second and third columns
+print("===================================")
+
+#Iterating through arrays
+for i in range(arr_2d.shape[0]): #Iterate through rows
+    for j in range(arr_2d.shape[1]): #Iterate through columns
+        print(arr_2d[i,j], end=" ")
+    print() #New line after each row
+
+print("===================================")
+# Pandas DataFrames
+data = {"A": [1,2,3,4,5], "B": [5,4,3,2,1], "C": ['a','b','c','d','e']}
+ser_ies = pd.Series([10,20,30,40,50])
+print(ser_ies)
+df = pd.DataFrame(data)
+print(df)
+print("===================================")
+print(ser_ies.head(2)) #First two rows
+print("===================================")
+print(df.tail(2)) #Last two rows
+print("===================================")
+print(df.describe()) #Statistical summary
+print("===================================")
+print(df.info()) #DataFrame info
+print("===================================")
+print(ser_ies.unique()) #Unique values in Series
+print("===================================")    
+
+ser_ies.apply(lambda x: x*2) #Apply function to each element
+print(ser_ies.apply(lambda x: x**2))
+
+print("===================================")
+#Filtering data 
+print(ser_ies[ser_ies > 25]) #Values greater than 25
+print("===================================")
+print(ser_ies[ser_ies % 20 == 0]) #Values divisible by 20
+print("===================================")
+print(ser_ies[ser_ies > 25][ser_ies < 45]) #Values between 25 and 45
+print("===================================")
+data = {"A": [1,2,3,4,5], "B": [5,4,3,2,1], "C": ['a','b','c','d','e']}
+print(pd.DataFrame(data))
+print("===================================")
+data2 = np.array([[1,2,3],[4,5,6],[7,8,9]])
+df2 = pd.DataFrame(data2)
+print(df2)
+print("===================================")
+df.columns = ['X','Y','Z'] #Rename columns
+print(df)
+print("===================================")
+df.columns = ['X','Y','Z'] #Rename columns
+df2.index = ['Row1','Row2','Row3'] #Rename index
+print(df2)      
+print("===================================")
+df.iloc[0,0] = 99 #Modify element by position
+print(df)
+print("===================================")
+df.loc[1,'Y'] = 88 #Modify element by label
+print(df)
+print("===================================")
+#Handling missing data

@@ -29,6 +29,7 @@ customers = [
         "id": 88888,
         "orders": [
             {"productName": "Air-Fryer", "price": 200.50, "quantity": 5},
+            {"productName": "Blender", "price": 49.99, "quantity": 1},
             {"productName": "Blender", "price": 49.99, "quantity": 1}
         ]
     }
@@ -65,7 +66,7 @@ for customer in customers:
 print(f"Highest spender: {highest_spender} with amount: ${highest_amount:.2f}")
 print("===================================")
 
-# Example: Calculate how many customers ordered a specific product
+# Example: Calculate how many times customers ordered a specific product
 product_to_check = "Blender"
 customers_who_ordered = {"name":" ","orders":[]}; 
 count = 0
@@ -74,15 +75,16 @@ for customer in customers:
         if order['productName'] == product_to_check:
             if customer['name'] not in customers_who_ordered:
                 customers_who_ordered['name'] = customer['name']
-                customers_who_ordered['orders'].append(order)
-                count += sum(1 for o in order['quantity'])
-                print(count)
-            #print(customers_who_ordered['name'] + " ordered : {product_to_check}  + "Number of times ordered ": {count})
-            print(f"{customer['name']} ordered {product_to_check}")
+                if order['productName'] == product_to_check and customer['name'] == customers_who_ordered['name']:
+                    customers_who_ordered['orders'].append(order['quantity'])
+                    #print(customers_who_ordered)
+                count = (order['quantity'])
+            print(f"{customer['name']} ordered {product_to_check} - {count} times")
+
 
 times_ordered = sum(1 for customer in customers if any(order['productName'] == product_to_check for order in customer['orders']))
 print(f"Number of customers who ordered {product_to_check}: {times_ordered}")
 
-customers_who_ordered = [customer['name'] for customer in customers if any(order['productName']
-== product_to_check for order in customer['orders'])]
+# customers_who_ordered = [customer['name'] for customer in customers if any(order['productName']
+# == product_to_check for order in customer['orders'])]
 print("===================================")
