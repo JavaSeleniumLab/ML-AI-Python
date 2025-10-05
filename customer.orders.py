@@ -21,7 +21,7 @@ customers = [
             {"productName": "Laptop", "price": 599.99, "quantity": 1},
             {"productName": "Smart-Watch", "price": 199.99, "quantity": 1},
             {"productName": "Air-Fryer", "price": 150.10, "quantity": 1},
-            {"productName": "Blender", "price": 49.99, "quantity": 1}
+            {"productName": "Blender", "price": 49.99, "quantity": 2}
         ]
     }, 
      {
@@ -63,3 +63,26 @@ for customer in customers:
         highest_amount = total_spent
         highest_spender = customer['name']
 print(f"Highest spender: {highest_spender} with amount: ${highest_amount:.2f}")
+print("===================================")
+
+# Example: Calculate how many customers ordered a specific product
+product_to_check = "Blender"
+customers_who_ordered = {"name":" ","orders":[]}; 
+count = 0
+for customer in customers:
+    for order in customer['orders']:
+        if order['productName'] == product_to_check:
+            if customer['name'] not in customers_who_ordered:
+                customers_who_ordered['name'] = customer['name']
+                customers_who_ordered['orders'].append(order)
+                count += sum(1 for o in order['quantity'])
+                print(count)
+            #print(customers_who_ordered['name'] + " ordered : {product_to_check}  + "Number of times ordered ": {count})
+            print(f"{customer['name']} ordered {product_to_check}")
+
+times_ordered = sum(1 for customer in customers if any(order['productName'] == product_to_check for order in customer['orders']))
+print(f"Number of customers who ordered {product_to_check}: {times_ordered}")
+
+customers_who_ordered = [customer['name'] for customer in customers if any(order['productName']
+== product_to_check for order in customer['orders'])]
+print("===================================")
