@@ -1,5 +1,8 @@
 import numpy as np 
 import pandas as pd
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 #Creating arrays
 arr = np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15])
@@ -140,4 +143,21 @@ print("===================================")
 df.loc[1,'Y'] = 88 #Modify element by label
 print(df)
 print("===================================")
-#Handling missing data
+
+categories = ['High','Medium', 'Low']
+values = ['low', 'High','Medium','low', 'High', 'Low', 'High', 'High','High']
+
+cat_var= pd.Categorical(values, categories, ordered=True)
+print(cat_var)
+
+
+data = {'A' : [1,2,3,4,5], 'B':[5,4,3,2,1]}
+df = pd.DataFrame(data)
+print(df)
+print("===================================")    
+df.plot()
+plt.show()
+print("===================================")
+df.plot(kind='bar')
+plt.show()  
+print("===================================")
