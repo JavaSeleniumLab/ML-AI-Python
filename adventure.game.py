@@ -14,7 +14,6 @@ def start_adventure():
     print("Good luck on your adventure!")
 
 print("===================================")
-print("Adventure game module loaded.")
 
 def cave():
     print("You enter a dark cave. It's cold and damp.")
@@ -127,4 +126,36 @@ def plains():
     else:
         print("Invalid action. You stand still, unsure of what to do.")
     print("===================================")    
+def travel_to(location):
+    if location == 'cave':
+        cave()
+    elif location == 'forest':
+        forest()
+    elif location == 'castle':
+        castle()
+    elif location == 'village':
+        village()
+    elif location == 'mountain':
+        mountain()
+    elif location == 'river':
+        river()
+    elif location == 'desert':
+        desert()
+    elif location == 'swamp':
+        swamp()
+    elif location == 'island':
+        island()
+    elif location == 'plains':
+        plains()
+    else:
+        print("Unknown location. Please choose a valid location.")
+        print("===================================")
 print("Adventure game module loaded.")
+if __name__ == "__main__":
+    start_adventure()
+    while True:
+        loc = input("Enter a location to travel to (or 'quit' to exit): ").strip().lower()
+        if loc == 'quit':
+            print("Thanks for playing! Goodbye!")
+            break
+        travel_to(loc)
