@@ -1,0 +1,86 @@
+import warnings
+warnings.filterwarnings("ignore")
+
+import numpy as np
+import pandas as pd
+try:
+	import statsmodels.api as sm
+except Exception:
+	sm = None
+	warnings.warn("statsmodels is not installed; continuing without it")
+
+from scipy import stats
+from scipy.stats import ttest_1samp
+
+
+
+arr = np.array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15])
+
+
+
+data = [10,12,23,23,16,23,21,16]
+pop_mean = np.mean(data)
+t_stat, p_value = ttest_1samp(data, pop_mean)
+
+
+t_stat, p_value = ttest_1samp(data, pop_mean)
+print(f"T-statistic: {t_stat}, P-value: {p_value}")
+
+data1 = [10,12,23,23,16,23,21,16]
+data2 = [12,14,22,20,18,24,20,18]
+t_stat, p_value = stats.ttest_ind(data1, data2)
+print(f"T-statistic: {t_stat}, P-value: {p_value}")
+
+if p_value < 0.05:
+    print("Reject the null hypothesis: The means are significantly different.")
+else:
+    print("Fail to reject the null hypothesis: The means are not significantly different.")
+
+
+print("=============Z-TEST======================")
+
+
+
+sample_data = [5.1, 6.2, 7.3, 5.8, 6.5, 7.0, 6.1, 5.9]
+population_mean = 6.0
+pop_std = 1.0
+sample_mean = np.mean(sample_data)
+n = len(sample_data)
+
+
+z_stat = (sample_mean - population_mean) / (pop_std / np.sqrt(n))
+p_value = 2 * (1 - stats.norm.cdf(abs(z_stat)))
+
+print(f"Z-statistic: {z_stat}, P-value: {p_value}")
+
+
+print("=============CHI - SQUARE -TEST======================")
+
+observed_data= [50, 30, 20]
+expected_data = [40, 40, 20]
+chi2_stat, p_value = stats.chisquare(observed_data, expected_data)
+print(f"Chi-square statistic: {chi2_stat}, P-value: {p_value}")
+
+
+print("=============VARIANCE-TEST======================")
+
+group1 = [10, 12, 14, 16, 18]
+group2 = [20, 22, 24, 26, 28]
+f_stat, p_value = stats.levene(group1, group2)
+print(f"F-statistic: {f_stat}, P-value: {p_value}")
+
+var1 = np.var(group1, ddof=1)
+var2 = np.var(group2, ddof=1)
+
+
+f_stat, p_value = stats.levene(group1, group2)
+print(f"F-statistic: {f_stat}, P-value: {p_value}")
+
+f_stat = var1 / var2
+dof1 = len(group1) - 1
+dof2 = len(group2) - 1
+p_value = 1 - stats.f.cdf(f_stat, dof1, dof2)
+print(f"F-statistic: {f_stat}, P-value: {p_value}")
+
+
+

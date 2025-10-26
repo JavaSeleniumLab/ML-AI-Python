@@ -1,0 +1,34 @@
+import numpy as np
+
+x = np.array([[4, 8, 1],
+             [2, 7, 9], 
+             [3, 4, 8]])
+x_inverse = np.linalg.inv(x)
+
+print('Original Matrix', x)
+print('==================')
+print('Inverse Matrix', x_inverse)
+
+
+import numpy as np
+
+x = np.array([[4, 8, 1],
+             [2, 7, 9], 
+             [3, 4, 8]])
+x_inverse = np.linalg.inv(x)
+
+print('Original Matrix', x)
+print('==================')
+print('Inverse Matrix', x_inverse)
+
+import numpy as np
+
+deciles = [np.percentile(b, i) for i in range(10, 101, 10)]
+for i, d in enumerate(deciles, start=1):
+    print(f"D{i} (Decile {i*10}%): {d}")
+
+    import pandas as pd
+data = {'b' : [1, 2, 8, 7, -6, 8, 6, -4, 8, 3],
+        'c' : [2, 4, 7, 9, 5, -2, 6, -1, 2, 5]}
+df = pd.DataFrame(data)
+print(df.corr())
