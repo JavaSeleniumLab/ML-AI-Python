@@ -11,6 +11,10 @@ except Exception:
 
 from scipy import stats
 from scipy.stats import ttest_1samp
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy.stats.mstats import winsorize
+from scipy.stats import boxcox
 
 
 
@@ -82,5 +86,101 @@ dof2 = len(group2) - 1
 p_value = 1 - stats.f.cdf(f_stat, dof1, dof2)
 print(f"F-statistic: {f_stat}, P-value: {p_value}")
 
+print("=============OCTOBER-26======================")
 
+df = pd.read_csv('HousePrices.csv')
+print(df)
 
+print("=============INFO======================")
+df.info()
+print("============HEAD=======================")
+print(df.head(10))
+print("==============TAIL=====================")	
+print(df.tail())
+print("=============DESCRIPTION======================")
+print(df.describe())
+print("=============DATA TYPES======================")
+print(df.dtypes)
+print("=============COLUMNS======================")
+print(df.columns)
+print("=============SHAPE======================")
+print(df.shape)
+print("=============NULL VALUES======================")
+print(df.isnull().sum())
+print("=============LOC======================")
+print(df.loc[10])
+print("=============ILOC======================")
+print(df.iloc[10])
+print("=============IS NULL ANY======================")
+print(df.isnull().any())
+print("=============DATE======================")
+df['date']= pd.to_datetime(df['date'])
+print(df['date'])
+print("=============DATA TRANSFORMATION======================")
+df['price_log'] = np.log(df['price']).apply(lambda x: round(x, 2))
+print(df[['price', 'price_log']].head())
+print("==============IQR====================")
+Q1 = df['price'].quantile(0.25)
+Q3 = df['price'].quantile(0.75)
+plt.boxplot(df['price'])
+#plt.show()
+lower_bound = Q1 - 1.5 * (Q3 - Q1)
+upper_bound = Q3 + 1.5 * (Q3 - Q1)
+outliers = df[(df['price'] < lower_bound) | (df['price'] > upper_bound)]
+print("Outliers based on IQR method:", outliers)
+df['price_winso'] = df['price'].apply(lambda x: upper_bound if x > upper_bound else (lower_bound if x < lower_bound else x))
+print(df[['price', 'price_winso']].head())
+print("=============WINZORIZE======================")
+df['price_winso2'] = winsorize(df['price'], limits=[0.05, 0.05])
+print(df[['price', 'price_winso2']].head())
+print("=============SEABORN PLOT======================")
+sns.barplot(x='bedrooms', y='price', data=df)
+#plt.show()
+print("=============HISTOGRAM======================")
+sns.histplot(df['price'])
+#plt.show()
+print("=============SCATTER PLOT======================")
+sns.scatterplot(x='sqft_living', y='price', data=df, color='purple')
+#plt.show()
+print("=============HEATMAP======================")
+num_df = df.select_dtypes(include=['float', 'int'])
+corr_matrix = num_df.corr()
+sns.heatmap(corr_matrix, annot=True, cmap='coolwarm')	
+#plt.show()
+print("=============DATAFRAME======================")
+dfr1 = pd.DataFrame({
+	'A': [1, 2, 3],
+	'B': ['a', 'b', 'c']})
+
+dfr2 = pd.DataFrame({
+	'A': [4, 5, 6],
+	'B': ['d', 'e', 'f']})
+
+dfr3 = pd.concat([dfr1, dfr2], ignore_index=True)
+print(dfr3)
+print("=============MERGE======================")
+df_left = pd.DataFrame({
+	'key': ['K0', 'K1', 'K2'],
+	'A': ['A0', 'A1', 'A2']})
+df_right = pd.DataFrame({
+	'key': ['K0', 'K1', 'K2'],
+	'B': ['B0', 'B1', 'B2']})
+df_merged = pd.merge(df_left, df_right, on='key')	
+print(df_merged)
+print("=============FEATURE ENGINEERING======================")
+df['TotalRooms'] = df['bedrooms'] + df['bathrooms']
+print(df[['bedrooms', 'bathrooms', 'TotalRooms']].head())
+print("=============SQUARE-ROOT======================")
+df['sqft_living_sqrt'] = np.sqrt(df['sqft_living'])
+print(df[['sqft_living', 'sqft_living_sqrt']].head())
+print("=============BOX-COX======================")
+df['price_boxcox'], fitted_lambda = boxcox(df['price'])
+print(df[['price', 'price_boxcox']].head())
+print("=============SCALERS(TRASFORMATIONS)======================")
+from sklearn.preprocessing import MinMaxScaler, StandardScaler, RobustScaler
+scaler = MinMaxScaler()
+df['price_minmax'] = scaler.fit_transform(df[['price']])
+print(df[['price', 'price_minmax']].head())
+scaler = StandardScaler()
+df['price_standard'] = scaler.fit_transform(df[['price']])
+print(df[['price', 'price_standard']].head())
