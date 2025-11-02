@@ -1,0 +1,167 @@
+import warnings
+warnings.filterwarnings("ignore")
+
+import numpy as np
+import pandas as pd
+try:
+	import statsmodels.api as sm
+except Exception:
+	sm = None
+	warnings.warn("statsmodels is not installed; continuing without it")
+
+from scipy import stats
+from scipy.stats import ttest_1samp
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy.stats.mstats import winsorize
+from scipy.stats import boxcox
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+
+
+# df = pd.read_csv('NSMES1988.csv')
+# print(df)
+# print(df.info())
+# print(df.describe())
+# print("==================NULL============================")
+# print(df.isnull().sum())    
+# print(df['age'].mean())
+# print(df['age'].median())
+# print(df['age'].mode())
+# print(df['age'].std())
+# print(df['age'].min())
+# print(df['age'].max())
+# print("==============================================================")
+# #print[df['income'].quantile(0.25)]
+# #print(df['income'].quantile(0.75))
+# print("=============BOXCOX===================")
+# df['income_boxcox'], fitted_lambda = boxcox(df['income'] + 10)
+# print(f"Fitted lambda: {fitted_lambda}")
+# print(df[['income', 'income_boxcox']].head())
+# #df.to_json('NSMES1988.json')
+# print(df.memory_usage())
+# print("=================INCOME*10=====================")
+# df['income'] * 10
+# print(df[['income', 'age']])
+# print("==============MIN-MAX====================")
+# mean_age = df['age'].mean()
+# median_age = df['age'].median()
+# std_age = df['age'].std()
+# min_age = df['age'].min()
+# max_age = df['age'].max()
+# mean_income = df['income'].mean()
+# median_income = df['income'].median()
+# std_income = df['income'].std()
+# min_income = df['income'].min()
+# max_income = df['income'].max()
+# summary = {'Stats': ['Mean', 'Median', 'Standard Deviation', 'Minimum', 'Maximum'],
+# 'Age': [mean_age, median_age, std_age, min_age, max_age],
+# 'Income': [mean_income, median_income, std_income, min_income, max_income]}
+# summary_report = pd.DataFrame(summary)
+# print(summary_report)
+
+df=pd.read_csv('AusApparalSales4thQrt2020.csv')
+print(df)
+print(df.info())
+print(df.describe())
+print("==================HIGH-SALES============================") 
+rev_by_state = df.groupby('State')['Sales'].sum().sort_values(ascending=False)
+print(rev_by_state)
+print("===================================") 
+top10 = rev_by_state.head(10)
+plt.figure(figsize=(10,6))
+top10.plot(kind='bar')
+plt.ylabel('Sales')
+plt.title('Top 10 states by revenue')
+plt.tight_layout()
+#plt.show()
+print("==============LOWEST REVENUE STATES =====================")
+rev_by_state_low = df.groupby('State')['Sales'].sum().sort_values(ascending=True)
+print(rev_by_state_low)
+print("===============NULL-VALUES===================")
+print(df.isnull())
+print("===============NOT-NULL-VALUES====================")
+print(df.notnull())
+print("===============TOTAL-NULL-COLUMNS====================")
+df[df.isnull().any(axis=1)].head()
+print(df[df.isnull().any(axis=1)].head())
+print("===============FILL-NULL-WITH-ZERO====================")
+df['Sales'] = df['Sales'].fillna(0)
+print(df['Sales'])
+print("==============SALES-BY-GENDER-HIGH =====================")
+rev_by_gender_high = df.groupby('Group')['Sales'].sum().sort_values(ascending=False)
+print(rev_by_gender_high)
+print("==============SALES-BY-GENDER-LOW =====================")
+rev_by_gender_low = df.groupby('Group')['Sales'].sum().sort_values(ascending=True)
+print(rev_by_gender_low)
+print("===============FILL-NULL-WITH-MEAN====================")
+df['Sales'] = df['Sales'].fillna(df['Sales'].mean())
+print(df['Sales'])
+print("===============DATE-1====================")
+# def aggregate_by_period(df):
+#     # df must be indexed by order_date
+#     agg_funcs = {
+#         'revenue': 'sum',
+#         'quantity': 'sum',
+#         'price': 'mean',          # avg price per order row (optional)
+#         'customer_id': lambda x: x.nunique()
+#     }
+#     # ensure column exists
+#     if 'customer_id' not in df:
+#         agg_funcs.pop('customer_id')
+
+#     weekly = df.resample('W').agg(agg_funcs).rename(columns={'quantity':'total_quantity','price':'avg_price','customer_id':'unique_customers'})
+#     monthly = df.resample('M').agg(agg_funcs).rename(columns={'quantity':'total_quantity','price':'avg_price','customer_id':'unique_customers'})
+#     quarterly = df.resample('Q').agg(agg_funcs).rename(columns={'quantity':'total_quantity','price':'avg_price','customer_id':'unique_customers'})
+
+#     return weekly, monthly, quarterly
+
+# weekly, monthly, quarterly = aggregate_by_period(df)
+date = df['Date']
+df_unit_sales= df.groupby(['Date','State'])['Sales'].sum().reset_index()
+print(df_unit_sales)
+print("===============DATE-2====================")
+df.set_index(df['Date'], inplace=True)
+print(df)
+df.drop('Date', axis=1, inplace=True)
+print(df)
+df.index = pd.to_datetime(df.index)
+print("===============RESAMPLE-DATE-WEEKLY====================")
+weekly_sales = df.resample('W').sum(numeric_only=True)
+print(weekly_sales)
+print("===============RESAMPLE-DATE-MONTHLY====================")   
+monthly_sales = df.resample('M').sum(numeric_only=True)
+print(monthly_sales)
+print("===============PLOT-CHART====================")
+plt.figure(figsize=(10,6))
+plt.plot(monthly_sales.index, monthly_sales['Sales'], marker='*', color='b', linewidth=2)
+plt.xticks(rotation=90)
+plt.title('Monthly Sales Over Time')
+plt.xlabel('Month')
+plt.ylabel('Total Sales')
+#plt.show() 
+print("===============SEABORN-CHART====================")
+sns.lineplot(x=monthly_sales.index, y='Sales', data=monthly_sales, marker='o', color='g')
+plt.xticks(rotation=90)
+plt.title('Monthly Sales Over Time (Seaborn)')
+plt.xlabel('Month')
+plt.ylabel('Total Sales')
+#plt.show()
+print("===============BARPLOT====================")
+sns.barplot(x=monthly_sales.index.month, y='Sales', data=monthly_sales, palette='viridis')
+for index, value in enumerate(monthly_sales['Sales']):
+    plt.text(index, value, f'{int(value)}', ha='center', va='bottom')
+plt.title('Monthly Sales Distribution')
+plt.xlabel('Month')
+plt.ylabel('Total Sales')
+#plt.show()
+print("===============HEATMAP====================")
+ct1=pd.crosstab(df_unit_sales['Date'], df_unit_sales['State'], values=df_unit_sales['Sales'], aggfunc='sum').fillna(0)
+plt.figure(figsize=(12,8))
+sns.heatmap(ct1, cmap='YlGnBu')
+plt.title('Sales Heatmap by Date and State')
+plt.xlabel('State')
+plt.ylabel('Date')
+plt.show()
+print("===============HEATMAP-2====================")
+ct2 = df_unit_sales.pivot_table(index='Date', columns='State', values='Sales', aggfunc='sum').fillna(0)
+

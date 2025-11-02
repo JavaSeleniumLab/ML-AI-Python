@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.stats.mstats import winsorize
 from scipy.stats import boxcox
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
 
 
@@ -184,3 +185,10 @@ print(df[['price', 'price_minmax']].head())
 scaler = StandardScaler()
 df['price_standard'] = scaler.fit_transform(df[['price']])
 print(df[['price', 'price_standard']].head())
+le = LabelEncoder()
+encode = le.fit_transform(df['city'])
+df['city_encoded'] = encode
+print(df[['city', 'city_encoded']].head())
+ohe = OneHotEncoder()
+city_ohe = ohe.fit_transform(df[['city']])
+print(city_ohe)
