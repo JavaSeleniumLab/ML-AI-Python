@@ -1,0 +1,44 @@
+import warnings
+warnings.filterwarnings("ignore")
+
+import numpy as np
+import pandas as pd
+try:
+	import statsmodels.api as sm
+except Exception:
+	sm = None
+	warnings.warn("statsmodels is not installed; continuing without it")
+
+from scipy import stats
+from scipy.stats import ttest_1samp
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy.stats.mstats import winsorize
+from scipy.stats import boxcox
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+
+
+
+df=pd.read_csv('marketing_data.csv')
+print(df)
+print("==============================================")
+print(df.info())
+print("==============================================")
+print(df.describe())
+print("====================NULLS FOR INCOME==========================")
+print(df.isnull().sum())    
+print("=================SOME COLUMS=============================")
+df.columns = df.columns.str.replace(' ', '').str.lower()
+if 'income' in df.columns:
+	df['income'] = pd.to_numeric(df['income'].astype(str).str.replace('[$,]', '', regex=True), errors='coerce')
+print(df['income'])
+print("====================MEDIAN INCOME==========================")
+print(df['income'].median())
+print("====================MEAN INCOME==========================")
+print(df['income'].mean())
+print("====================MEAN WITH EDUCATION M_STATUS==========================")
+print(df.groupby(['education', 'marital_status'])[['income']].mean())
+for edu in df.education.unique():
+  for marital in df.marital_status.unique():
+    values = avg_data.loc[edu, marital]
+    df.loc[(df.education  edu) & (df.marital_status  marital), 'income'] = values
