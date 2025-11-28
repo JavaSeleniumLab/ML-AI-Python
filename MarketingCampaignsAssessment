@@ -71,12 +71,10 @@ print("==============================================")
 df_plot = avg_spending_by_yob.reset_index(name='avg_income')
 df_plot['year_birth'] = pd.to_numeric(df_plot['year_birth'], errors='coerce')
 df_plot = df_plot.sort_values('year_birth')
-
 # choose an education level to plot (example)
-edu = ''   # change to one of your education values
+edu = 'PhD'   # change to one of your education values
 sel = df_plot[df_plot['education'] == edu].dropna(subset=['avg_income','year_birth'])
 
-# pass the dataframe to seaborn
 sns.lineplot(data=sel, x='year_birth', y='avg_income', hue='marital_status', marker='o')
 plt.title(f'Average Income by YOB — Education: {edu}')
 plt.show()
