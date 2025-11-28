@@ -1,6 +1,62 @@
-# Machine Learnig Introduction:
-# Supervised --- 
-# Unsupervised --- 
-# Semi-Supervised --- 
-# Self-Supervised --- 
-# Reinforcement --- 
+import warnings
+warnings.filterwarnings("ignore")
+
+import numpy as np
+import pandas as pd
+try:
+	import statsmodels.api as sm
+except Exception:
+	sm = None
+	warnings.warn("statsmodels is not installed; continuing without it")
+
+from scipy import stats
+from scipy.stats import ttest_1samp
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy.stats.mstats import winsorize
+from scipy.stats import boxcox
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+
+df=pd.read_csv('tvmarketing.csv')
+print(df)
+print(df.info())
+print(df.describe())
+#df.plot()
+df.isnull().sum()
+
+x = df['TV']
+y = df['Sales']
+
+
+x_train, x_test , y_train, y_test = train_test_split(x, y, train_size=0.8, random_state=42)
+print(x_train)
+print(x_test)
+print("==========================================")
+print(y_train)
+
+lr = LinearRegression()
+lr.fit(x_train, y_train)
+
+y_train_predict = lr.predict(x_train)
+y_test_predict = lr.predict(x_test)
+r2_train = r2_score(y_train, y_train_predict)
+r2_test = r2_score(y_test, y_test_predict)
+mae_train = mean_absolute_error(y_train, y_train_predict)
+mae_test = mean_absolute_error(y_test, y_test_predict)
+mse_train = mean_squared_error(y_train, y_train_predict)
+mse_test = mean_squared_error(y_test, y_test_predict)
+print("Training Set Mean Absolute Error:", mae_train)
+print("Test Set Mean Absolute Error:", mae_test)
+print("Training Set Mean Squared Error:", mse_train)
+print("Test Set Mean Squared Error:", mse_test)
+print("Training Set R² Score:", r2_train)
+print("Test Set R² Score:", r2_test)
+
+
+# plt.scatter(x_test, y_test, color='blue')
+# plt.plot(x_train, lr.predict(x_train), color='red')
+# plt.xlabel('TV')
+# plt.ylabel('Sales')
+# plt.title('TV vs Sales')
+# plt.show()

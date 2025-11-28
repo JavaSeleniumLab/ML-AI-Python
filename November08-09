@@ -36,9 +36,17 @@ print("====================MEDIAN INCOME==========================")
 print(df['income'].median())
 print("====================MEAN INCOME==========================")
 print(df['income'].mean())
-print("====================MEAN WITH EDUCATION M_STATUS==========================")
-print(df.groupby(['education', 'marital_status'])[['income']].mean())
+print("====================MEAN INCOME WITH EDUCATION M_STATUS==========================")
+avg_data = df.groupby(['education', 'marital_status'])['income'].mean()
+print(avg_data)
 for edu in df.education.unique():
-  for marital in df.marital_status.unique():
-    values = avg_data.loc[edu, marital]
-    df.loc[(df.education  edu) & (df.marital_status  marital), 'income'] = values
+	for marital in df.marital_status.unique():
+		# lookup grouped mean using the MultiIndex (edu, marital)
+		try:
+			values = avg_data.loc[(edu, marital)]
+		except KeyError:
+			values = np.nan
+		df.loc[(df.education == edu) & (df.marital_status == marital), 'income'] = values
+
+print("==============================================")
+
