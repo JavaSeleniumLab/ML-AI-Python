@@ -17,6 +17,9 @@ from scipy.stats.mstats import winsorize
 from scipy.stats import boxcox
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.preprocessing import StandardScaler, LabelEncoder, OneHotEncoder
+from sklearn.linear_model import Lasso, Ridge, ElasticNet
 
 df=pd.read_csv('tvmarketing.csv')
 print(df)
@@ -25,38 +28,111 @@ print(df.describe())
 #df.plot()
 df.isnull().sum()
 
-x = df['TV']
-y = df['Sales']
+df.shape
+(200,2)
+
+x = df[['TV']]
+y = df[['Sales']]
 
 
-x_train, x_test , y_train, y_test = train_test_split(x, y, train_size=0.8, random_state=42)
+x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8, random_state=42)
 print(x_train)
 print(x_test)
 print("==========================================")
 print(y_train)
 
+
 lr = LinearRegression()
 lr.fit(x_train, y_train)
 
+
+plt.scatter(x_test, y_test, color='red')
+plt.plot(x_train, lr.predict(x_train), color='blue')
+plt.xlabel('TV')
+plt.ylabel('Sales')
+plt.title('TV vs Sales - Lenear Regression')
+#plt.show()
+
+
+y_pred = lr.predict(x_test)
+r2 = r2_score(y_test, y_pred)
+print("==========================================")
+print("R² Score on Test Set:", r2*100)
+
+mae = mean_absolute_error(y_test, y_pred)
+print("==========================================")
+print("Mean Absolute Error on Test Set:", mae)
+
+mse = mean_squared_error(y_test, y_pred)
+print("==========================================")
+print("Mean Squared Error on Test Set:", mse)
+
+rmse = np.sqrt(mse)
+print("==========================================")
+print("Root Mean Squared Error on Test Set:", rmse)
+
 y_train_predict = lr.predict(x_train)
 y_test_predict = lr.predict(x_test)
+
 r2_train = r2_score(y_train, y_train_predict)
 r2_test = r2_score(y_test, y_test_predict)
+
 mae_train = mean_absolute_error(y_train, y_train_predict)
 mae_test = mean_absolute_error(y_test, y_test_predict)
+
 mse_train = mean_squared_error(y_train, y_train_predict)
 mse_test = mean_squared_error(y_test, y_test_predict)
+
+print("==========================================")
 print("Training Set Mean Absolute Error:", mae_train)
 print("Test Set Mean Absolute Error:", mae_test)
+print("==========================================")
 print("Training Set Mean Squared Error:", mse_train)
 print("Test Set Mean Squared Error:", mse_test)
+print("==========================================")
 print("Training Set R² Score:", r2_train)
 print("Test Set R² Score:", r2_test)
 
+print("==========================================")
+if mse_train < mse_test or r2_train > r2_test:
+	if abs(r2_train - r2_test) > 0.1:
+		print("The model may be overfitting to the training data.")
+	else:
+		print("The model is performing well but check for slight overfitting.")
+elif mse_train > mse_test or r2_train < r2_test:
+		print("The model may be underfitting consider increasing model complexity.")
+else:
+		print("Model has a balanced fit on both training and testing dataset.")
+print("==========================================")
 
-# plt.scatter(x_test, y_test, color='blue')
-# plt.plot(x_train, lr.predict(x_train), color='red')
-# plt.xlabel('TV')
-# plt.ylabel('Sales')
-# plt.title('TV vs Sales')
-# plt.show()
+lr.fit(x_train, y_train)
+y_predict = lr.predict(x_test)
+r2 = r2_score(y_test, y_predict)
+print("R² Score after re-fitting on Test Set:", r2*100)
+print("==========================================")
+
+lasso = Lasso()
+lasso.fit(x_train, y_train)
+y_lasso_pred = lasso.predict(x_test)
+r2_lasso = r2_score(y_test, y_lasso_pred)
+print("Lasso Predict : ", r2_lasso*100)
+print("==========================================")
+
+
+ridge = Ridge()
+ridge.fit(x_train, y_train)
+y_ridge_predict = ridge.predict(x_test)
+r2_ridge = r2_score(y_test, y_ridge_predict)
+print("Ridge Predict : ", r2_ridge*100)
+print("==========================================")
+
+
+elastic = ElasticNet()
+elastic.fit(x_train, y_train)
+y_elastic_predict = elastic.predict(x_test)
+r2_elastic = r2_score(y_test, y_elastic_predict)
+print("ElasticNet Predict : ", r2_elastic*100)
+print("==========================================")
+
+
+
