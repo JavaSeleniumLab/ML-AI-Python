@@ -134,5 +134,133 @@ r2_elastic = r2_score(y_test, y_elastic_predict)
 print("ElasticNet Predict : ", r2_elastic*100)
 print("==========================================")
 
+print("All model evaluations complete.")
+print("==========================================")
 
+prdict_229 = lr.predict([[229.5]])
+print("Predicted sales for TV advertising budget of 229:", prdict_229)
+print("==========================================")
+
+predict_229_lasso = lasso.predict([[229.5]])
+print("Lasso Predicted sales for TV advertising budget of 229:", predict_229_lasso)
+print("==========================================")
+
+predict_229_ridge = ridge.predict([[229.5]])
+print("Ridge Predicted sales for TV advertising budget of 229:", predict_229_ridge)
+print("==========================================")
+
+predict_229_elastic = elastic.predict([[229.5]])
+print("ElasticNet Predicted sales for TV advertising budget of 229:", predict_229_elastic)
+print("==========================================")
+
+print("Model predictions complete.")
+print("=====================NON-LINEAR REGRESSION - POLYNOMIAL=====================")
+
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.pipeline import Pipeline
+
+# Polynomial regression (degree 2, 3, 4)
+# for degree in [2, 3, 4]:
+#     # Create pipeline: polynomial features -> linear regression
+#     poly_pipeline = Pipeline([
+#         ('poly_features', PolynomialFeatures(degree=degree, include_bias=False)),
+#         ('linear_regression', LinearRegression())
+#     ])
+    
+#     # Fit on training data
+#     poly_pipeline.fit(x_train, y_train)
+    
+#     # Predict on test data
+#     y_poly_pred = poly_pipeline.predict(x_test)
+    
+#     # Evaluate
+#     r2_poly = r2_score(y_test, y_poly_pred)
+#     mse_poly = mean_squared_error(y_test, y_poly_pred)
+#     rmse_poly = np.sqrt(mse_poly)
+#     mae_poly = mean_absolute_error(y_test, y_poly_pred)
+    
+#     print(f"Polynomial Degree {degree}:")
+#     print(f"  R² Score: {r2_poly*100:.2f}%")
+#     print(f"  MAE: {mae_poly:.4f}")
+#     print(f"  MSE: {mse_poly:.4f}")
+#     print(f"  RMSE: {rmse_poly:.4f}")
+    
+#     # Predict for TV budget of 229.5
+#     pred_229_poly = poly_pipeline.predict([[229.5]])
+#     print(f"  Predicted sales for TV=229.5: {pred_229_poly[0][0]:.2f}")
+#     print("==========================================")
+
+# # Visualize: Linear vs Polynomial fits
+# x_range = np.linspace(x_train.min(), x_train.max(), 100).reshape(-1, 1)
+
+# plt.figure(figsize=(12, 4))
+
+# # Plot 1: Linear
+# plt.subplot(1, 3, 1)
+# plt.scatter(x_test, y_test, color='red', alpha=0.5, label='Test data')
+# plt.plot(x_range, lr.predict(x_range), color='blue', linewidth=2, label='Linear')
+# plt.xlabel('TV')
+# plt.ylabel('Sales')
+# plt.title('Linear Regression')
+# plt.legend()
+
+# # Plot 2: Polynomial degree 2
+# plt.subplot(1, 3, 2)
+# poly2_pipeline = Pipeline([
+#     ('poly_features', PolynomialFeatures(degree=2, include_bias=False)),
+#     ('linear_regression', LinearRegression())
+# ])
+# poly2_pipeline.fit(x_train, y_train)
+# plt.scatter(x_test, y_test, color='red', alpha=0.5, label='Test data')
+# plt.plot(x_range, poly2_pipeline.predict(x_range), color='green', linewidth=2, label='Poly degree 2')
+# plt.xlabel('TV')
+# plt.ylabel('Sales')
+# plt.title('Polynomial Regression (degree 2)')
+# plt.legend()
+
+# # Plot 3: Polynomial degree 3
+# plt.subplot(1, 3, 3)
+# poly3_pipeline = Pipeline([
+#     ('poly_features', PolynomialFeatures(degree=3, include_bias=False)),
+#     ('linear_regression', LinearRegression())
+# ])
+# poly3_pipeline.fit(x_train, y_train)
+# plt.scatter(x_test, y_test, color='red', alpha=0.5, label='Test data')
+# plt.plot(x_range, poly3_pipeline.predict(x_range), color='orange', linewidth=2, label='Poly degree 3')
+# plt.xlabel('TV')
+# plt.ylabel('Sales')
+# plt.title('Polynomial Regression (degree 3)')
+# plt.legend()
+
+# plt.tight_layout()
+# plt.savefig('polynomial_regression_comparison.png')
+# plt.show()
+
+# print("Polynomial regression analysis complete.")
+# print("Plot saved: polynomial_regression_comparison.png")
+
+poly_features = PolynomialFeatures()
+x_train_poly = poly_features.fit_transform(x_train)
+x_test_poly = poly_features.transform(x_test)
+
+poly_model = LinearRegression()
+poly_model.fit(x_train_poly, y_train)
+
+y_poly_pred = poly_model.predict(x_test_poly)
+y_train_poly = poly_model.predict(x_train_poly)
+
+r2_poly_train = r2_score(y_train, y_train_poly)
+print("R2 Score on Train Set (Polynomial):", r2_poly_train*100)
+
+polly_predict = poly_model.predict(poly_features.transform([[229.5]]))
+print("Predicted sales for TV advertising budget of 229 (Polynomial):", polly_predict)
+print("==========================================")
+
+x_range = np.linspace(x_train.min(), x_train.max(), 100).reshape(-1, 1)
+plt.scatter(x_test, y_test, color='red')
+plt.plot(x_range, poly_model.predict(poly_features.transform(x_range)), color='blue')
+plt.xlabel('TV')
+plt.ylabel('Sales')
+plt.title('TV vs Sales - Polynomial Regression')
+plt.show() 
 
