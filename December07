@@ -1,0 +1,120 @@
+
+import warnings
+warnings.filterwarnings("ignore")
+
+import numpy as np
+import pandas as pd
+try:
+	import statsmodels.api as sm
+except Exception:
+	sm = None
+	warnings.warn("statsmodels is not installed; continuing without it")
+
+from scipy import stats
+from scipy.stats import ttest_1samp
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy.stats.mstats import winsorize
+from scipy.stats import boxcox
+from sklearn.model_selection import KFold, LeaveOneOut, cross_val_score, train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import ConfusionMatrixDisplay, mean_absolute_error, mean_squared_error, r2_score
+from sklearn.preprocessing import StandardScaler, LabelEncoder, OneHotEncoder
+from sklearn.linear_model import Lasso, Ridge, ElasticNet
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import (accuracy_score, classification_report, confusion_matrix, precision_score, recall_score, f1_score, auc, roc_curve)
+
+print("===================== DECEMBER -07 =====================")
+
+
+
+df = pd.read_csv('Breast_cancer_dataset.csv')
+df.sample(5)
+print(df)
+print(df.info())    
+print(df.describe())
+df.isnull().sum()
+df.drop(['id','Unnamed: 32'],axis=1,inplace=True)
+print(df.info())    
+print(df.sample(2))
+sns.countplot(df['diagnosis'])
+#plt.show()
+from sklearn.preprocessing import LabelEncoder
+le = LabelEncoder()
+df['diagnosis'] = le.fit_transform(df['diagnosis'])
+x = df.drop('diagnosis',axis=1)
+y = df['diagnosis']
+
+x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8, random_state=42)
+print(x_train)
+print(x_test)
+print("==========================================")
+
+# OneHotEncoder = OneHotEncoder()
+# y_train = y_train.replace({'M':1,'B':0})
+lor = LogisticRegression()
+lor.fit(x_train, y_train)
+y_pred = lor.predict(x_test)
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("Classification Report:\n", classification_report(y_test, y_pred, target_names=['Benign', 'Malignant']))
+print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred, labels=lor.classes_))
+
+print("Precision M :", precision_score(y_test, y_pred))
+print("Precision B :", precision_score(y_test, y_pred,  pos_label=1))
+
+print("Recall M :", recall_score(y_test, y_pred,  pos_label=0))
+print("Recall B :", recall_score(y_test, y_pred,  pos_label=1))
+
+print("F1 Score M :", f1_score(y_test, y_pred,  pos_label=0))
+print("F1 Score B :", f1_score(y_test, y_pred,  pos_label=1))
+
+print("==========================================")
+print(classification_report(y_test, y_pred))
+
+
+print("================PIPELINE===================")
+pipeline = Pipeline([
+    ('scaler', StandardScaler()),
+    ('logistic_regression', LogisticRegression())
+])
+pipeline.fit(x_train, y_train)
+y_pred_pipeline = pipeline.predict(x_test)
+print("Accuracy (Pipeline):", accuracy_score(y_test, y_pred_pipeline))
+print("==========================================")
+print("Classification Report (Pipeline):\n", classification_report(y_test, y_pred_pipeline))
+print("Confusion Matrix (Pipeline):\n", confusion_matrix(y_test, y_pred_pipeline))
+print("==========================================")
+y_pred_pipeline_lor = pipeline.predict(x_test)
+print("Accuracy (Pipeline with Logistic Regression):", accuracy_score(y_test, y_pred_pipeline_lor))
+print("==========================================")
+print(classification_report(y_test,y_pred_pipeline_lor))
+print("===================================")
+from sklearn.metrics import roc_auc_score, roc_curve, confusion_matrix
+print(confusion_matrix(y_test, y_pred_pipeline_lor))
+cm_lor=ConfusionMatrixDisplay(confusion_matrix(y_test, y_pred_pipeline_lor, labels=pipeline.classes_))
+cm_lor.plot()
+plt.show()
+print("===================================")
+# ROC-AUC Curve
+
+df['diagnosis'] = le.fit_transform(df['diagnosis'])
+y_prob = pipeline.predict_proba(x_test)[:, 1]
+print("ROC-AUC :", roc_auc_score(y_test, y_prob))
+fpr, tpr, thresholds = roc_curve(y_test, y_prob)
+roc_auc= auc(fpr, tpr)
+print("AUC :", roc_auc*100)
+plt.plot(fpr, tpr, color='blue', label='ROC curve (area = %0.2f)' % roc_auc)
+plt.plot([0, 1], [0, 1], color='red', linestyle='--')
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('Receiver Operating Characteristic (ROC) Curve')
+plt.legend(loc="lower right")
+plt.show()
+print("===================================")    
