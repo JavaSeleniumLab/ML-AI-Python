@@ -352,3 +352,17 @@ plt.legend(loc='lower right')
 
 
 print("===================== DECEMBER - 20 =====================")
+
+# kernel = [' linear', 'poly', 'rbf', 'sigmoid']
+# results = {}
+# for k in kernel:
+#     pipeline_svm = Pipeline([('scaler', StandardScaler()), ('svm', SVC(kernel=k, probability=True))])
+#     pipeline_svm.fit(x_train, y_train)
+#     y_pred_test_svm = pipeline_svm.predict(x_test)
+#     testing_accuracy = accuracy_score(y_test, y_pred_test_svm) * 100
+#     results[k] = testing_accuracy
+# print(f"SVM with kernel={k}: Testing Accuracy = {testing_accuracy:.4f}")
+# for k, v in results.items():
+#     print(f"Kernel: {k}, Accuracy: {v:.4f}%")
+	
+

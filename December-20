@@ -1,0 +1,298 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.preprocessing import StandardScaler, MinMaxScaler, OneHotEncoder, LabelEncoder
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import GaussianNB, MultinomialNB, BernoulliNB
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import (accuracy_score, confusion_matrix, classification_report,roc_auc_score, roc_curve, auc)
+import warnings
+warnings.filterwarnings('ignore')
+
+df = pd.read_csv('online_gaming_behavior_dataset.csv')  # Example of reading a dataset
+df.head()
+print(df.info())
+print(df.describe())
+df.isnull().sum()
+
+df_numeric = df.select_dtypes(include=[int, float])
+object_cols = df.select_dtypes(include=['object']).columns
+for col in object_cols:
+    unique_values = df[col].nunique()
+    print(f'Column: {col}, Unique Values: {unique_values}')
+
+#df["Engagement_Level"] = 
+df.drop(['PlayerID'],axis=1,inplace=True)
+
+sns.countplot(x="EngagementLevel",data=df)
+plt.title('')
+plt.xlabel('EngagementLevel')
+plt.ylabel('SessionsPerWeek')
+#plt.show()
+
+print("===============================================")
+
+#plt.box plt.plot for PlayTimeHours ! plt.figure()
+sns.boxplot(x=df["PlayTimeHours"])
+plt.title("Play Time Hours (Outliers & Spread)")
+#plt.show()
+
+print("===============================================")
+#Histogram for Age
+sns.histplot(x=df["Age"],bins=10,kde=True)
+plt.title("Age Distribution")
+plt.xlabel("Age")
+plt.ylabel("Frequency")
+#plt.show()
+
+print("===============================================")
+#Pie Chart for Gender
+gender_counts = df['Gender'].value_counts()
+plt.pie(gender_counts, labels=gender_counts.index, autopct='%1.1f%%', startangle=140)
+plt.title('Gender Distribution')
+plt.axis('equal')       
+#plt.show()
+
+print("===============================================")
+#Bar Chart for Play Time Hours by Engagement Level
+sns.barplot(x='EngagementLevel', y='PlayTimeHours', data=df)
+plt.title("Play Time Hours by Engagement Level")
+plt.xlabel("Engagement Level")
+plt.ylabel("Play Time Hours")
+#plt.show()
+
+print("===============================================")
+#Scatter Plot for Age vs Play Time Hours
+sns.scatterplot(x='Age', y='PlayTimeHours', data=df, hue='EngagementLevel')
+plt.title("Age vs Play Time Hours")
+#plt.show()
+
+print("===============================================")
+#Box Plot for Engagement Level by Med, High, Low
+numeric_cols = df.select_dtypes(include=["int64","float64"]).columns
+plt.figure(figsize=(15,10))
+for i,col in enumerate(numeric_cols,1):  # plt.subplot(rows,columns,plot_number)
+    plt.subplot(len(numeric_cols)//3+1,3,i)
+    sns.boxplot(x='EngagementLevel', y=col, data=df)
+    plt.title(f"Box-plot-{col}")
+plt.tight_layout()
+#plt.show()
+
+print("===============================================")
+plt.figure(figsize=(8, 6))
+sns.boxplot(x='EngagementLevel', y='PlayTimeHours', data=df, order=['Low', 'Medium', 'High'])
+plt.title('Play Time Hours by Engagement Level')
+plt.xlabel('Engagement Level')
+plt.ylabel('Play Time Hours')
+#plt.show()
+
+print("===============================================")
+#Multibar plot Clustered Bar Plot for Engagement Level vs GameGenere
+plt.figure(figsize=(10,6))
+sns.countplot(x='GameGenre', hue='EngagementLevel', data=df)
+plt.title('Engagement Level by Game Genre')
+#plt.show()
+
+print("===============================================")
+X = df.drop("EngagementLevel",axis=1)
+y = df["EngagementLevel"]
+
+from sklearn.preprocessing import LabelEncoder
+le = LabelEncoder()
+categorical_columns = ['Gender', 'Location', 'GameGenre', 'GameDifficulty']
+label_encoders = {}
+for col in categorical_columns:
+    le = LabelEncoder()
+    X[col] = le.fit_transform(X[col])
+    label_encoders[col] = le
+print(X.head())
+
+#train & test for x & y
+x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+scaler = StandardScaler()
+x_train = scaler.fit_transform(x_train)
+x_test = scaler.transform(x_test)
+print("=============MODEL BUILDING======================")
+models = {
+    "Decision Tree": DecisionTreeClassifier(),
+    "Random Forest": RandomForestClassifier()
+}
+#Logistic Regression
+for model_name, model in models.items():
+    model.fit(x_train, y_train)
+    y_pred = model.predict(x_test)
+    print(f"Model: {model_name}")
+    print("Accuracy:", accuracy_score(y_test, y_pred))
+    print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
+    print("Classification Report:\n", classification_report(y_test, y_pred))
+    print("===============================================")
+lor = LogisticRegression()
+lor.fit(x_train,y_train)
+y_pred_lor = lor.predict(x_test)
+acc_lor = accuracy_score(y_test, y_pred_lor)
+print("Accuracy of Logistic:", acc_lor*100)
+#Confusion Matrix
+cm_lor = confusion_matrix(y_test, y_pred_lor)
+print("Confusion Matrix:\n", cm_lor)
+plt.figure(figsize=(8,6))
+sns.heatmap(cm_lor, annot=True, fmt='d', cmap='Blues', cbar=False)
+plt.title('Confusion Matrix - Logistic Regression')
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+#plt.show()
+print("===============================================")
+#Naive Bayes
+gnb = GaussianNB()
+gnb.fit(x_train, y_train)
+y_pred_gnb = gnb.predict(x_test)
+acc_gnb = accuracy_score(y_test, y_pred_gnb)
+print("Accuracy of Naive Bayes:", acc_gnb*100)
+#Confusion Matrix
+cm_gnb = confusion_matrix(y_test, y_pred_gnb)
+print("Confusion Matrix:\n", cm_gnb)
+plt.figure(figsize=(8,6))
+sns.heatmap(cm_gnb, annot=True, fmt='d', cmap='Blues', cbar=False)
+plt.title('Confusion Matrix - Naive Bayes')
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+#plt.show()
+print("===============================================")
+#Naive Bayes - Confusion Matrix
+print(classification_report(y_test, y_pred_gnb))
+print(confusion_matrix(y_test, y_pred_gnb))
+plt.figure(figsize=(8,6))
+sns.heatmap(confusion_matrix(y_test, y_pred_gnb), annot=True, fmt='d', cmap='Blues', cbar=False)
+plt.title('Confusion Matrix - Naive Bayes')
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+#plt.show()
+print("===============================================")
+#Naive Bayes - Confusion Matrix
+print(classification_report(y_test, y_pred_gnb))
+print(confusion_matrix(y_test, y_pred_gnb)) 
+
+print("============= AOC - ROC======================")
+# ROC-AUC for Multi-class Classification
+from sklearn.preprocessing import label_binarize
+
+# Use the labels present in th full target and the trained GaussianNB (gnb) for probabilities
+classes = np.unique(y)
+y_test_binarize = label_binarize(y_test, classes=classes)
+n_classes = y_test_binarize.shape[1]
+
+# get predicted probabilities from the fitted Naive Bayes model (gnb)
+y_score = gnb.predict_proba(x_test)
+
+fpr = dict()
+tpr = dict()
+roc_auc = dict()
+for i in range(n_classes):
+    fpr[i], tpr[i], _ = roc_curve(y_test_binarize[:, i], y_score[:, i])
+    roc_auc[i] = auc(fpr[i], tpr[i])
+
+plt.figure()
+for i in range(n_classes):
+    plt.plot(fpr[i], tpr[i], label=f'Class {classes[i]} (AUC = {roc_auc[i]:.2f})')
+plt.plot([0, 1], [0, 1], 'k--')
+plt.xlim([0.0, 1.0])
+plt.ylim([0.0, 1.05])
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('Receiver Operating Characteristic (ROC) Curve')
+plt.legend(loc='lower right')
+#plt.show()
+print("===============================================")
+
+from sklearn.preprocessing import label_binarize
+if len(set(y_test)) > 2:
+    # Binarize the test labels for multi-class ROC
+    y_test_binarize = label_binarize(y_test, classes=lor.classes_)
+    n_classes = y_test_binarize.shape[1]
+    y_pred_lor_proba = lor.predict_proba(x_test)
+
+    fpr = dict()
+    tpr = dict()
+    roc_auc_dict = dict()
+
+    # Compute ROC curve and AUC for each class
+    for i in range(n_classes):
+        fpr[i], tpr[i], _ = roc_curve(y_test_binarize[:, i], y_pred_lor_proba[:, i])
+        roc_auc_dict[i] = auc(fpr[i], tpr[i])
+
+    # Plotting
+    plt.figure()
+    for i in range(n_classes):
+        plt.plot(fpr[i], tpr[i], label=f'Class {i} (AUC = {roc_auc_dict[i]:.2f})')
+    plt.plot([0, 1], [0, 1], 'k--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('Receiver Operating Characteristic (ROC) Curve')
+    plt.legend(loc='lower right')
+    #plt.show()
+
+print("==================== KNN ===========================")
+from sklearn.neighbors import KNeighborsClassifier
+
+knn = KNeighborsClassifier(n_neighbors=5)
+knn.fit(x_train, y_train)
+
+y_pred_knn = knn.predict(x_test)
+knn_accuracy = accuracy_score(y_test, y_pred_knn)
+
+print("Accuracy:", knn_accuracy * 100)
+print(classification_report(y_test, y_pred_knn))
+
+print("================== KNN - CLASSES =============================")
+if len(set(y_test)) > 2:
+    y_test_bin = label_binarize(y_test, classes=knn.classes_)
+    knn_classes = y_test_bin.shape[1]
+    y_pred_proba = knn.predict_proba(x_test)
+
+    fpr = {}
+    tpr = {}
+    roc_auc = {}
+
+    for i in range(knn_classes):
+        fpr[i], tpr[i], _ = roc_curve(y_test_bin[:, i], y_pred_proba[:, i])
+        roc_auc[i] = roc_auc_score(y_test_bin[:, i], y_pred_proba[:, i])
+
+    plt.figure(figsize=(8, 6))
+    for i in range(knn_classes):
+        plt.plot(
+            fpr[i],
+            tpr[i],
+            label=f'ROC curve (class {i}) (AUC = {roc_auc[i]:.2f})',
+        )
+    plt.plot([0, 1], [0, 1], 'k--', label='Random Classifier')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('Receiver Operating Characteristic (ROC) Curve')
+    plt.legend(loc='lower right')
+    plt.grid(True)
+    #plt.show()
+
+print("====================== SVM =========================")
+#SVM
+svm = SVC()
+svm.fit(x_train, y_train)
+y_pred_svm = svm.predict(x_test)
+acc_svm = accuracy_score(y_test, y_pred_svm)
+#print("Accuracy of SVM:", acc_svm*100)
+
+plt.figure(figsize=(8,6))
+cm_svm = confusion_matrix(y_test, y_pred_svm)
+sns.heatmap(cm_svm, annot=True, fmt='d', cmap='Blues', cbar=False)
+plt.title('Confusion Matrix - SVM')
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+#plt.show()
+print("===============================================")
