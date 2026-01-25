@@ -1,0 +1,61 @@
+from mlxtend.frequent_patterns import apriori, association_rules
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import warnings
+
+from sklearn.model_selection import train_test_split
+warnings.filterwarnings('ignore')
+from sklearn.ensemble import IsolationForest
+
+#Isolation Forest on Credit Card Fraud Detection Dataset
+df_if = pd.read_csv('credit_card_fraud.csv')
+print(df_if.head())
+print(df_if.info())
+print(df_if.isnull().sum())
+print(df_if.sample(5))
+print(df_if.shape)
+
+df_if['Class'].unique()
+array = ([0., 1.])
+
+
+x = df_if.drop(['Class'], axis=1)
+y = df_if['Class'].values
+
+
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
+model = IsolationForest(contamination='auto', random_state=42)
+
+model.fit(x_train)
+train_pred = model.predict(x_train)
+test_pred = model.predict(x_test)
+train_score = model.score_samples(x_train)
+test_score = model.score_samples(x_test)
+print("Train Scores: ", train_score)
+print("Test Scores: ", test_score)
+print("Train Predictions: ", train_pred)
+print("Test Predictions: ", test_pred)
+
+#Identify anomalies
+x_test['Anomaly_Score'] = test_score
+x_test['Anomaly'] = test_pred
+print(x_test)
+print(x_test['Anomaly'].value_counts())
+
+
+#Dispaly scatter plot of anomalies
+plt.figure(figsize=(10,6))
+sns.scatterplot(data=x_test, x='V1', y='V2', hue='Anomaly', palette=['green', 'red'])
+plt.title('Anomaly Detection using Isolation Forest')
+plt.show()
+
+#Rithik version
+plt.scatter(x_test['Amount'], x_test['Anomaly_Score'], c=x_test['Anomaly'], cmap='coolwarm')
+plt.xlabel('Amount')
+plt.ylabel('Anomaly Score')
+plt.title('Anomaly Detection Scatter Plot using Isolation Forest - Rithink Version')
+plt.colorbar(label='Anomaly')
+plt.legend()
+plt.show()

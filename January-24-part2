@@ -1,0 +1,52 @@
+from mlxtend.frequent_patterns import apriori, association_rules
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import warnings
+warnings.filterwarnings('ignore')
+
+
+
+df_assoc = pd.read_csv('Market_Basket_Optimisation.csv')
+print(df_assoc.head())
+print(df_assoc.info())
+print(df_assoc.isnull().sum())
+print(df_assoc.sample(5))
+
+print(df_assoc.shape)
+
+transactions = []
+for i in range(0, df_assoc.shape[0]):
+    transactions.append([str(df_assoc.values[i,j]) for j in range(0, df_assoc.shape[1]) if str(df_assoc.values[i,j]) != 'nan'])
+print(transactions)
+
+
+transaction = []
+for i in range(df_assoc.shape[0]):
+     row_items = df_assoc.iloc[i].dropna().astype(str).tolist()
+     if row_items:
+         transaction.append(row_items)
+print(transaction)
+
+
+from mlxtend.preprocessing import TransactionEncoder
+te = TransactionEncoder()
+te_ary = te.fit(transactions).transform(transactions)
+
+df = pd.DataFrame(te_ary, columns=te.columns_)
+print(df)
+
+from mlxtend.frequent_patterns import apriori, association_rules
+
+frequent_itemsets = apriori(df, min_support=0.01, use_colnames=True)
+rules = association_rules(frequent_itemsets, metric="confidence", min_threshold=0.2)
+print(rules)
+
+#Isolation Forest
+from sklearn.ensemble import IsolationForest
+iso_forest = IsolationForest(contamination=0.05, random_state=42)
+iso_forest.fit(df)
+anomaly_scores = iso_forest.decision_function(df)
+anomalies = iso_forest.predict(df)
+df['Anomaly'] = anomalies

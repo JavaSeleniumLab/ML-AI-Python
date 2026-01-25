@@ -1,0 +1,128 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import warnings
+warnings.filterwarnings('ignore')
+
+
+df = pd.read_csv('diabetes.csv')
+print(df.head())
+print(df.info())
+print(df.describe())
+print(df.isnull().sum())
+print(df.sample(5))
+
+
+#Histogram for age
+plt.figure(figsize=(10,6))
+sns.histplot(df['age'], bins=30, kde=True)
+plt.title('Distribution of Age')
+plt.xlabel('Age')
+plt.ylabel('Frequency')
+#plt.show()
+
+
+#Correlation heatmap
+sns.heatmap(df.corr(numeric_only=True), annot=True)
+plt.title('Correlation Heatmap')
+#plt.show()
+
+
+x = df.drop(columns=['class'])
+y = df['class']
+
+print("============================================================")
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42) 
+
+
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+
+print("============================================================")
+pca = PCA()
+pca.fit(X_train)
+explained_variance = pca.explained_variance_ratio_
+eigenvalues = pca.explained_variance_
+print("Explained Variance Ratio:", explained_variance)
+print("Eigenvalues:", eigenvalues)
+
+print("============================================================")
+
+plt.plot(range(1, len(eigenvalues) + 1), eigenvalues, marker='o', linestyle='--')
+plt.title('Creee Plot')
+plt.xlabel('Principal Components - Before Scaling')
+plt.ylabel('Eigenvalue')
+plt.show()
+print("============================================================")
+
+
+#scaling the data
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+pca = PCA()
+pca.fit(X_train)
+
+
+print("============================================================")
+explained_variance = pca.explained_variance_ratio_
+eigenvalues = pca.explained_variance_
+print("Explained Variance Ratio:", explained_variance)
+print("Eigenvalues:", eigenvalues)
+
+
+print("============================================================")
+plt.plot(range(1, len(eigenvalues) + 1), eigenvalues, marker='o', linestyle='--')
+plt.title('Creee Plot')
+plt.xlabel('Principal Components - After Scaling')
+plt.ylabel('Eigenvalue')
+plt.show()
+
+print("============================================================")
+pca3 = PCA(n_components=3)
+X_train_pca = pca3.fit_transform(X_train)
+X_test_pca = pca3.transform(X_test)
+
+df_train_pca = pd.DataFrame(data=X_train_pca, columns=['PC1', 'PC2', 'PC3'])
+df_train_pca['class'] = y_train
+
+df_test_pca = pd.DataFrame(data=X_test_pca, columns=['PC1', 'PC2', 'PC3'])
+df_test_pca['class'] = y_test
+
+pca4 = PCA(n_components=4)
+X_train_pca4 = pca4.fit_transform(X_train)
+X_test_pca4 = pca4.transform(X_test)
+df_train_pca4 = pd.DataFrame(data=X_train_pca4, columns=['PC1', 'PC2', 'PC3', 'PC4'])
+df_train_pca4['class'] = y_train    
+df_test_pca4 = pd.DataFrame(data=X_test_pca4, columns=['PC1', 'PC2', 'PC3', 'PC4'])
+df_test_pca4['class'] = y_test
+
+print("============================================================")
+print("PCA with 3 components:")
+print(df_train_pca.head())
+print("============================================================")
+print("PCA with 4 components:")
+print(df_train_pca4.head())
+
+
+print("======================LINIAR DISCRIMINANT ANALYSIS============================")
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
+
+lda = LDA(n_components=1)
+X_train_lda = lda.fit_transform(X_train, y_train)
+X_test_lda = lda.transform(X_test)
+
+df_train_lda = pd.DataFrame(data=X_train_lda, columns=['LD1'])
+df_train_lda['class'] = y_train
+print(df_train_lda.head())
+
+df_test_lda = pd.DataFrame(data=X_test_lda, columns=['LD1'])
+df_test_lda['class'] = y_test
+print(df_test_lda.head())
+
+print("=============================ASSOCIATION ROLE===============================")
+from mlxtend.frequent_patterns import apriori, association_rules
+df_assoc = pd.read_csv('diabetes.csv')

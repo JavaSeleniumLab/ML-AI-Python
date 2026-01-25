@@ -1,0 +1,131 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import warnings
+warnings.filterwarnings('ignore')
+import scipy.stats as stats
+from sklearn.metrics.pairwise import cosine_similarity   
+import matplotlib.pyplot as plt
+import seaborn as sns
+import statistics as stats
+import operator 
+
+
+animes = pd.read_csv('anime.csv')
+ratings = pd.read_csv('rating.csv')
+print(animes.head())
+print(ratings.head())
+print(animes.info())
+print(ratings.info())
+print(animes.isnull().sum())
+print(ratings.isnull().sum())
+
+print("==================GENRE FILL==========================")
+animes.genre = animes['genre'].fillna('Unknown')
+print(animes.isnull().sum())
+
+print("===================TYPE FILL=========================")
+animes['type'] = animes['type'].fillna('Unknown')
+print(animes.isnull().sum())
+
+print("====================RATING FILL========================")
+animes['rating'] = animes['rating'].fillna(animes['rating'].mean())
+print(animes.isnull().sum())
+
+print(animes.sample(5))
+print(ratings.sample(5))
+print(animes.shape)
+print(ratings.shape)
+
+print("====================EPISODES==============================")
+animes['Episodes'] = pd.to_numeric(animes['episodes'], errors='coerce').fillna(0).astype(int)
+print(animes.info())
+
+print("====================UNIQUE EPISODES=======================")
+print(animes['Episodes'].unique())
+
+#Diplay tot 5 genres
+print("====================TOP 5 GENRES=========================")
+all_genres = animes['genre'].str.split(',').explode()
+top_5_genres = all_genres.value_counts().head(5)
+print("Top 5 Genres:\n", top_5_genres)
+
+#Plot top 5 genres
+plt.figure(figsize=(10,6))
+sns.countplot(data=animes, x='type', order=animes['type'].value_counts().index)
+plt.title('Distribution of Anime Types')
+plt.xlabel('Type')
+plt.ylabel('Count')
+plt.xticks(rotation=45)
+plt.show()
+
+#Bar plot for top 5 genres
+plt.figure(figsize=(10,6))
+sns.barplot(x=top_5_genres.index, y=top_5_genres.values, palette='viridis')
+plt.title('Top 5 Anime Genres')
+plt.xlabel('Genre')
+plt.ylabel('Count')
+plt.show()
+
+
+ratings_summary = ratings['rating'].describe()
+print("Ratings Summary Statistics:\n", ratings_summary)
+ratings.rating[ratings.rating  != -1].hist(bins=50)
+plt.title('Distribution of Ratings (Excluding -1)')
+plt.xlabel('Rating')
+plt.ylabel('Frequency')
+plt.show()
+
+
+#Calculate ratings for all users
+print("=================RATINGS PER USER=======================")
+ratings_per_user = ratings.groupby('user_id')['rating'].count().reset_index(name='count')
+print("Ratings per User Statistics:\n", ratings_per_user.head())
+
+#Display rating per user histogram
+
+ratings_per_user_mean = ratings_per_user['count'].replace(-1, np.nan).dropna().tolist()
+
+
+plt.figure(figsize=(10,6))
+sns.histplot(ratings_per_user['count'], bins=30, kde=True)
+plt.title('Distribution of Ratings per User')
+plt.xlabel('Number of Ratings')
+plt.ylabel('Number of Users')
+plt.show()
+
+
+#anime_id with rating -> mean 
+print("=================ANIME RATINGS=========================")
+anime_ratings = ratings[ratings['rating'] != -1].groupby('anime_id')['rating'].mean().reset_index()
+anime_ratings = anime_ratings.merge(animes[['anime_id', 'name']], on='anime_id', how='left')
+print(anime_ratings.head())
+
+#anime_id with rating -> mean with statistics
+print("=================ANIME RATINGS STATISTICS=========================")
+ratings_per_anime = ratings.groupby('anime_id')['rating'].count().reset_index(name='count')
+mean_ratings_per_anime = stats.mean(ratings_per_anime['count'])
+median_ratings_per_anime = stats.median(ratings_per_anime['count'])
+mode_ratings_per_anime = stats.mode(ratings_per_anime['count'])
+print("Mean Ratings per Anime: ", mean_ratings_per_anime)
+print("Median Ratings per Anime: ", median_ratings_per_anime)
+print("Mode Ratings per Anime: ", mode_ratings_per_anime)   
+
+#Rating with user_id and anime_id
+print("=================RATINGS WITH USER_ID AND ANIME_ID=========================")
+ratings_per_user_df = pd.DataFrame(ratings_per_user, columns=['user_id', 'count'])
+filtered_ratings_per_user_df = ratings_per_user_df[ratings_per_user_df['count'] >= 500]
+popular_user = filtered_ratings_per_user_df['user_id'].tolist()
+
+ratings_per_anime_df = pd.DataFrame(ratings_per_anime, columns=['anime_id', 'count'])
+filtered_ratings_per_anime_df = ratings_per_anime_df[ratings_per_anime_df['count'] >= 1000]
+popular_anime = filtered_ratings_per_anime_df['anime_id'].tolist()
+
+filtered_ratings = ratings[(ratings['anime_id'].isin(popular_anime)) & (ratings['user_id'].isin(popular_user))]
+print(filtered_ratings.head())
+print(filtered_ratings.shape)
+
+
+#Create user-anime matrix
+user_anime_matrix = filtered_ratings.pivot(index='user_id', columns='anime_id', values='rating').fillna(0)
+print(user_anime_matrix.head())
