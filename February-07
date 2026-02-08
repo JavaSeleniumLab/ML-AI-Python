@@ -1,0 +1,109 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.linear_model import Perceptron
+from sklearn.model_selection import train_test_split 
+from sklearn.metrics import accuracy_score
+import warnings
+warnings.filterwarnings('ignore')
+
+
+
+data = pd.read_csv('spambase.csv')
+print(data.sample(5))
+print(data.info())
+print(data.isnull().sum())
+
+
+# Perform classification using Regression
+X = data.drop('spam', axis=1)
+y = data['spam']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+model = Perceptron()
+model.fit(X_train, y_train)
+accuracy = model.score(X_test, y_test)
+print("====================PERCEPTRON CLASSIFICATION==========================")
+print(f'Accuracy: {accuracy:.2f}')
+
+# Perform Naive Bayes Classification
+from sklearn.naive_bayes import MultinomialNB
+nb_model = MultinomialNB()
+nb_model.fit(X_train, y_train)
+nb_accuracy = nb_model.score(X_test, y_test)
+print("====================NAIVE BAYES CLASSIFICATION==========================")
+print(f'Accuracy: {nb_accuracy:.2f}')
+
+# Perform Logistic Regression Classification
+from sklearn.linear_model import LogisticRegression
+lr_model = LogisticRegression(max_iter=1000)
+lr_model.fit(X_train, y_train)
+lr_accuracy = lr_model.score(X_test, y_test)
+print("====================LOGISTIC REGRESSION CLASSIFICATION==========================")
+print(f'Accuracy: {lr_accuracy:.2f}')
+
+
+# Compare the accuracies of the three models
+print("====================MODEL COMPARISON==========================")
+print(f'Perceptron Accuracy: {accuracy:.2f}')
+print(f'Naive Bayes Accuracy: {nb_accuracy:.2f}')
+print(f'Logistic Regression Accuracy: {lr_accuracy:.2f}')
+
+
+# Scale data for better performance
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+X_train_scaled, X_test_scaled, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+
+#Perceptron with scaled data
+model_scaled = Perceptron()
+model_scaled.fit(X_train_scaled, y_train)
+pred_train = model_scaled.predict(X_train_scaled)
+pred_test = model_scaled.predict(X_test_scaled)
+
+# compute accuracies correctly: accuracy_score(y_true, y_pred)
+acc_train = accuracy_score(y_train, pred_train)
+acc_test = accuracy_score(y_test, pred_test)
+
+print("====================PERCEPTRON WITH SCALED DATA==========================")
+print(f'Training Accuracy: {acc_train:.2f}')
+print(f'Testing Accuracy: {acc_test:.2f}')
+
+# Activation function:
+def step_function(x):
+    return 1 if x >= 0 else 0
+# Example usage of the step function
+input_value = 0.5
+output = step_function(input_value)
+print("====================STEP FUNCTION EXAMPLE==========================")
+print(f'Input: {input_value}, Output: {output}')
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+x = np.random.rand(100)  # Random input data
+weight = np.random.rand(100)  # Random weights
+bias = np.random.rand(1)  # Random bias
+print(f'Input: {x[:5]}, Weights: {weight[:5]}, Bias: {bias[0]}')
+
+print("====================RELU EXAMPLE==========================")
+
+z = np.dot(x, weight) + bias  # Linear transformation
+print(f'Linear Output (z): {z[:5]}')
+
+def relu(z):
+    return np.maximum(0, z)
+
+relu_output = relu(z)
+print(f'ReLU Output: {relu_output[:5]}')
+
+# Sigmoid function example
+def sigmoid(z):
+    return 1 / (1 + np.exp(-z))
+sigmoid_output = sigmoid(z)
+print("====================SIGMOID EXAMPLE==========================")
+print(f'Sigmoid Output: {sigmoid_output[:5]}')
+
+y = 1
+error_sigmoid = abs(y - sigmoid_output[0])  # Compute error signal for first output
+print(f'Error Signal: {error_sigmoid}')

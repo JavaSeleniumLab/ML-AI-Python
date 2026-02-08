@@ -1,0 +1,159 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.linear_model import Perceptron
+from sklearn.model_selection import train_test_split 
+from sklearn.metrics import accuracy_score
+import warnings
+warnings.filterwarnings('ignore')
+import tensorflow as tf
+import keras
+
+
+data = pd.read_csv('spambase.csv')
+
+x = np.random.rand(10)
+weights = np.random.rand(10)
+bias = np.random.rand(1)
+print("Random Input:", x)
+print("Random Weights:", weights)
+print("Random Bias:", bias)
+
+z = np.dot(x, weights) + bias
+print("Linear Combination (z):", z)
+
+
+def activation_function(z):
+    return np.where(z >= 0, 1, 0)
+output = activation_function(z)
+print("Output after Activation Function:", output)
+
+
+def sigmoid(z):
+    return 1 / (1 + np.exp(-z))
+sigmoid_output = sigmoid(z)
+print("Output after Sigmoid Function:", sigmoid_output) 
+
+def relu(z):
+    return np.maximum(0, z)
+relu_output = relu(z)
+print("Output after ReLU Function:", relu_output)
+
+actual_y = 1
+sigmoid_output = sigmoid(z)
+print("Sigmoid Output:", sigmoid_output)
+
+error_signal = abs(actual_y - sigmoid_output)
+print("Error Signal:", error_signal)
+
+SSE_sigmoid = np.square(actual_y - sigmoid_output)
+print("Sum of Squared Errors (SSE) for Sigmoid:", SSE_sigmoid)
+
+RSSE_sigmoid = np.sqrt(SSE_sigmoid)
+print("Root Sum of Squared Errors (RSSE) for Sigmoid:", RSSE_sigmoid)
+
+
+tensor0 = tf.constant(4)
+print("TensorFlow Constant:\n", tensor0)
+
+tensor2 = tf.constant([[1, 2], [3, 4]])
+print("TensorFlow 2D Tensor:\n", tensor2)
+
+tensor3 = tf.constant([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+print("TensorFlow 3D Tensor:\n", tensor3)
+
+
+a = tf.constant([[1, 2], [3, 4]])
+b = tf.constant([[5, 6], [7, 8]])
+c = tf.add(a, b)
+d = tf.multiply(a, b)
+e = tf.matmul(a, b)
+print("Result of Tensor Addition:\n", c)
+print("Result of Tensor Multiplication:\n", d)
+print("Result of Tensor Matrix Multiplication:\n", e)
+
+f = tf.constant([[1], [2], [3]])
+g = tf.constant([[4], [5], [6]])
+
+h = tf.concat([f, g], axis=1)
+print("Concatenated Tensors:\n", h)
+
+i = tf.reshape(f, (1, 3))
+print("Reshaped Tensor:\n", i)
+
+# MNIST dataset example
+mnist = tf.keras.datasets.mnist
+print("Loading MNIST dataset...")
+(X_train, y_train), (X_test, y_test) = mnist.load_data()
+print("MNIST Training Data Shape:", X_train.shape)
+print("MNIST Test Data Shape:", X_test.shape)
+
+
+X_train, X_test = X_train / 255.0, X_test / 255.0
+
+model = tf.keras.Sequential([
+    tf.keras.layers.Flatten(input_shape=(28, 28)),
+    tf.keras.layers.Dense(128, activation='relu'),
+    tf.keras.layers.Dropout(0.2),
+    tf.keras.layers.Dense(10)
+])
+predictions = model(X_train[:1]).numpy()
+print("Model Predictions for First 1 Training Samples:\n", predictions)
+
+print(tf.nn.softmax(predictions).numpy())
+
+model.compile(optimizer='adam',
+              loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+                metrics=['accuracy'])
+# model.fit(X_train, y_train, epochs=5)
+# test_loss, test_acc = model.evaluate(X_test, y_test, verbose=2)
+# print("\nTest Accuracy:", test_acc)
+
+from sklearn.datasets import fetch_california_housing
+import numpy as np
+from sklearn.linear_model import LinearRegression
+
+housing = fetch_california_housing()
+X = housing.data
+y = housing.target
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+model = LinearRegression()
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+
+df = pd.DataFrame(housing.data, columns=housing.feature_names)
+df['target'] = housing.target
+print(df.head())
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+
+train_data, test_data, train_labels, test_labels = train_test_split(
+    df[housing.feature_names], df['target'], test_size=0.2, random_state=42)
+scaler = StandardScaler()
+train_data = scaler.fit_transform(train_data)
+test_data = scaler.transform(test_data)
+
+#Neaural Network Example
+model = tf.keras.Sequential([
+    tf.keras.layers.Dense(64, activation='relu', input_shape=(train_data.shape[1],)),
+    tf.keras.layers.Dense(1)
+])
+model.compile(optimizer='adam', loss='mse', metrics= ['mean_absolute_error']) 
+model.fit(train_data, train_labels, epochs=20, batch_size=32, validation_split=0.2)
+test_loss = model.evaluate(test_data, test_labels)
+
+print("\nTest Loss:", test_loss)
+
+history = model.fit(train_data, train_labels, epochs=20, batch_size=32, validation_split=0.2)
+plt.plot(history.history['loss'], label='Training Loss')
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.legend()
+#plt.show()
+
+
+
+
+

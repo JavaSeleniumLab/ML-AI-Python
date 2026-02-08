@@ -129,3 +129,35 @@ print(filtered_ratings.shape)
 #Create user-anime matrix
 user_anime_matrix = filtered_ratings.pivot(index='user_id', columns='anime_id', values='rating').fillna(0)
 print(user_anime_matrix.head())
+
+
+#check cosine similarity
+cosine_sim = cosine_similarity(user_anime_matrix)
+print("Cosine Similarity Matrix:\n", cosine_sim)
+cosine_sim_df = pd.DataFrame(cosine_sim, index=user_anime_matrix.index, columns=user_anime_matrix.index)
+print(cosine_sim_df.head())
+
+# Reccommendation movies for a given user
+def recommend_anime(user_id, user_anime_matrix, cosine_sim_df, animes, top_n=5):
+    if user_id not in user_anime_matrix.index:
+        return "User ID not found."
+
+    user_similarities = cosine_sim_df[user_id]
+    similar_users = user_similarities.sort_values(ascending=False)[1:top_n+1]
+    similar_user_ids = similar_users.index.tolist()
+
+    # Get anime ratings for similar users
+    similar_user_ratings = user_anime_matrix.loc[similar_user_ids]
+    # Calculate average ratings for each anime
+    avg_ratings = similar_user_ratings.mean(axis=0)
+    # Remove already rated anime by the user
+    user_rated_animes = user_anime_matrix.loc[user_id]
+    unrated_animes = avg_ratings[user_rated_animes == 0]
+
+    # Recommend top N unrated animes
+    recommendations = unrated_animes.sort_values(ascending=False).head(top_n)
+    
+    return recommendations
+user_id = 17
+recommendations = recommend_anime(user_id, user_anime_matrix, cosine_sim_df, animes, top_n=5)
+print(f"Top 5 Anime Recommendations for User {user_id}:\n", recommendations)
