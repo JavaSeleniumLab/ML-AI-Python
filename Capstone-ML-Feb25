@@ -1,0 +1,91 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import warnings
+warnings.filterwarnings('ignore')
+import scipy.stats as stats
+from sklearn.metrics.pairwise import cosine_similarity   
+import matplotlib.pyplot as plt
+import seaborn as sns
+import statistics as stats
+import operator 
+
+
+hr_data = pd.read_csv('HR_comma_sep.csv')
+print(hr_data.head())
+print(hr_data.info())
+print(hr_data.isnull().sum())
+print("========Understand what factors contributed most to employee turnover at EDA ===========")
+hr_data['left'].value_counts().plot(kind='bar')
+plt.title('Employee Turnover')
+plt.xlabel('Left')
+plt.ylabel('Count')
+plt.show()
+print("========Understand the distribution of employee satisfaction levels ===========")
+sns.histplot(hr_data['satisfaction_level'], kde=True)
+plt.title('Distribution of Employee Satisfaction Levels')
+plt.xlabel('Satisfaction Level')
+plt.ylabel('Frequency')
+plt.show()
+print("========Perform clustering of employees who left based on their satisfaction and evaluation===========")
+from sklearn.cluster import KMeans
+left_employees = hr_data[hr_data['left'] == 1]
+X = left_employees[['satisfaction_level', 'last_evaluation']]
+kmeans = KMeans(n_clusters=3, random_state=42)  
+kmeans.fit(X)
+left_employees['Cluster'] = kmeans.labels_ 
+plt.figure(figsize=(10, 6))
+sns.scatterplot(data=left_employees, x='satisfaction_level', y='last_evaluation', hue='Cluster', palette='Set1')
+plt.title('Clustering of Employees Who Left')   
+plt.xlabel('Satisfaction Level')
+plt.ylabel('Last Evaluation')
+plt.legend(title='Cluster')
+plt.show()
+print("=========Handle the left Class Imbalance using the SMOTE technique ==========")
+from imblearn.over_sampling import SMOTE
+X = hr_data.drop('left', axis=1)
+X = pd.get_dummies(X, drop_first=True)
+y = hr_data['left']
+smote = SMOTE(random_state=42)
+X_resampled, y_resampled = smote.fit_resample(X, y)
+print("Original class distribution:")
+print(y.value_counts())
+print("Resampled class distribution:")
+print(y_resampled.value_counts())
+print("==========Perform k-fold cross-validation model training and evaluate performance ========")
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.ensemble import RandomForestClassifier
+X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, test_size=0.2, random_state=42)
+model = RandomForestClassifier(random_state=42)
+cv_scores = cross_val_score(model, X_train, y_train, cv=5)
+print("Cross-validation scores:", cv_scores)
+print("Average cross-validation score:", np.mean(cv_scores))
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+from sklearn.metrics import classification_report, confusion_matrix
+print("Classification Report:")
+print(classification_report(y_test, y_pred))
+print("Confusion Matrix:")
+print(confusion_matrix(y_test, y_pred))
+print("============Identify the best model and justify the evaluation metrics used =========")
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+accuracy = accuracy_score(y_test, y_pred)
+precision = precision_score(y_test, y_pred)
+recall = recall_score(y_test, y_pred)
+f1 = f1_score(y_test, y_pred)
+print("Accuracy:", accuracy)
+print("Precision:", precision)
+print("Recall:", recall)
+print("F1 Score:", f1)
+print("===========Suggest various retention strategies for targeted employees =============")
+targeted_employees = hr_data[(hr_data['satisfaction_level'] < 0.5) & (hr_data['last_evaluation'] < 0.5)]
+print("Targeted Employees:")
+print(targeted_employees)
+print("Retention Strategies:")
+print("1. Implement Employee Wellness Programs: Offer wellness programs that focus on physical and mental health to improve overall employee well-being.")
+print("2. Provide Career Development Opportunities: Offer training and development programs to help employees grow their skills and advance their careers within the company.")
+print("3. Enhance Work-Life Balance: Implement flexible work hours, remote work options, and encourage employees to take breaks to improve work-life balance.")
+print("4. Recognize and Reward Employees: Implement a recognition and rewards program to acknowledge employees' hard work and contributions, which can boost morale and job satisfaction.")
+
+
+      

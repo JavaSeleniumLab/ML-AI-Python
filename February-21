@@ -1,0 +1,130 @@
+from scipy.differentiate import derivative
+from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import OneHotEncoder
+import torch 
+import tensorflow as tf
+import keras.layers as layers
+import keras
+from keras import Sequential
+from keras.optimizers import SGD as KerasSGD
+import numpy as np
+import torchvision
+import matplotlib.pyplot as plt
+import torchvision.transforms as transforms
+from sklearn.linear_model import Perceptron
+from torch.utils.data import DataLoader
+from sklearn.model_selection import train_test_split
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+from torchvision import datasets
+import warnings
+warnings.filterwarnings('ignore')
+from sklearn.datasets import load_iris
+
+
+
+iris = load_iris()
+X = iris.data
+y = iris.target
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# sklearn 1.2+ replaced `sparse` with `sparse_output`
+encoder = OneHotEncoder(sparse_output=False)
+y_train = encoder.fit_transform(y_train.reshape(-1, 1))
+y_test = encoder.transform(y_test.reshape(-1, 1))
+
+weights = np.random.rand(X_train.shape[1], y_train.shape[1])
+bias = np.random.rand(y_train.shape[1])
+
+# Implement Softmax activation function:
+def softmax(z):
+ if z.ndim == 1:
+  z = z.reshape(1, -1)
+ exp_z = np.exp(z - np.max(z, axis=1, keepdims=True))
+ return exp_z / exp_z.sum(axis=1, keepdims=True)
+
+def loss_function(x,y, weights, bias):
+    predictions = softmax(np.dot(x, weights) + bias)
+    loss = -np.mean(np.sum(y * np.log(predictions + 1e-15), axis=1))
+    return loss
+
+def SGD(x, y, weights, bias, learning_rate, epochs):
+    for epoch in range(epochs):
+        for i in range(len(x)):
+            xi = x[i].reshape(1, -1)
+            yi = y[i].reshape(1, -1)
+            predictions = softmax(np.dot(xi, weights) + bias)
+            error = predictions - yi
+            weights -= learning_rate * np.dot(xi.T, error)
+            bias -= learning_rate * error.flatten()
+        if (epoch + 1) % 100 == 0:
+            current_loss = loss_function(x, y, weights, bias)
+            print(f'Epoch {epoch + 1}/{epochs}, Loss: {current_loss:.4f}')
+learning_rate = 0.01
+epochs = 1000
+
+def objective(x, y):
+    return x**2 + y**2
+
+def derivative_func(x, y):
+    return np.array([2*x, 2*y])
+
+def adagrad(objective, derivative, bounds, n_iter, step_size, lr=0.01):
+    # initialize solution using numpy to avoid tensor/ndarray mixing issues
+    solution = bounds[:, 0] + np.random.rand(len(bounds)) * (bounds[:, 1] - bounds[:, 0])
+    sq_grad_sums = [0.0 for _ in range(bounds.shape[0])]
+    for iter in range(n_iter):
+        gradient = derivative(solution[0], solution[1])
+        new_solution = []
+        for i in range(len(solution)):
+            sq_grad_sums[i] += gradient[i]**2.0
+            alpha = step_size / (1e-8 + np.sqrt(sq_grad_sums[i]))
+            new_solution.append(solution[i] - alpha * gradient[i])
+        solution = np.asarray(new_solution)
+        solution_eval = objective(solution[0], solution[1])
+        print('>%d f(%s) = %.5f' % (iter, solution, solution_eval))
+    return [solution, solution_eval]
+# set random seeds for reproducibility
+np.random.seed(1)
+torch.manual_seed(1)
+bounds = np.asarray([[-1.0, 1.0], [-1.0, 1.0]])
+n_iter = 50
+step_size = 0.1
+best, score = adagrad(objective, derivative_func, bounds, n_iter, step_size)
+print('Done!')
+print('f(%s) = %f' % (best, score))
+
+model = Sequential([
+    layers.Dense(128, activation='relu', input_shape=(4,)),
+    layers.Dense(128, activation='relu'),
+    layers.Dense(3, activation='softmax')
+])
+optimizer = keras.optimizers.Adam(learning_rate=0.001)
+model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
+history = model.fit(X_train, y_train, epochs=5, batch_size=32, validation_data=(X_test, y_test))
+
+loss, accuracy = model.evaluate(X_test, y_test)
+print(f'Test Loss: {loss:.4f}, Test Accuracy: {accuracy:.4f}')
+
+sgd = KerasSGD(learning_rate=0.01)
+model.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=['accuracy'])
+history = model.fit(X_train, y_train, epochs=100, batch_size=32, validation_split=0.2)
+
+#adam
+from keras.optimizers import Adam, Adadelta
+adam = Adam(learning_rate=0.01)
+model.compile(
+    optimizer=adam,
+    loss='categorical_crossentropy',
+    metrics=['accuracy']
+)
+
+ada_delta = Adadelta(learning_rate=0.01)
+model.compile(optimizer=ada_delta, loss='categorical_crossentropy', metrics=['accuracy'])
+history = model.fit(X_train, y_train, epochs=100, batch_size=32, validation_split=0.2)
+ada_delta_loss, ada_delta_acc = model.evaluate(X_test, y_test)
+print(f'Adadelta Test Loss: {ada_delta_loss:.2%}, Adadelta Test Accuracy: {ada_delta_acc:.2%}')

@@ -1,0 +1,95 @@
+import pathlib
+
+import numpy as np
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Activation, Dense
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from skimage import io
+import matplotlib.pyplot as plt
+import os
+from PIL import Image
+
+# Image Processing:
+img = io.imread('ImageProcessing.jpg')
+print(img.shape)
+plt.imshow(img)
+
+fig, axes = plt.subplots(2, 2, figsize=(5, 5))
+axes[0, 0].imshow(img)
+axes[0, 0].set_title('Color')
+axes[0, 0].axis('off')
+
+def color(images, color_idx):
+	channel_image = np.zeros_like(img)
+	channel_image[:, :, color_idx] = img[:, :, color_idx]
+	return channel_image
+
+red_image = color(img, 0)
+axes[0, 1].imshow(red_image)
+axes[0, 1].set_title('Red')
+
+axes[0, 1].axis('off')
+green_image = color(img, 1)
+axes[1, 0].imshow(green_image)
+axes[1, 0].set_title('Green')
+
+axes[1, 0].axis('off')
+blue_image = color(img, 2)
+axes[1, 1].imshow(blue_image)
+axes[1, 1].set_title('Blue')
+
+axes[1, 1].axis('off')
+plt.show()
+
+
+def augment_image(datagen, image):
+	samples = tf.expand_dims(image, axis = 0)
+	iter = datagen.flow(samples, batch_size = 1)
+	plt.figure(figsize=(10, 6))
+	for i in range(3):
+		plt.subplot(1, 3, i + 1)
+		batch = next(iter)
+		img = batch[0].astype('uint8')
+		plt.imshow(img)
+		plt.axis('off')
+	plt.show()
+
+flip = ImageDataGenerator(horizontal_flip=True, vertical_flip=True)
+augment_image(flip, img)
+
+
+brightness = ImageDataGenerator(brightness_range=[0.5, 1.5])
+augment_image(brightness, img)
+
+rotation = ImageDataGenerator(rotation_range=45)
+augment_image(rotation, img)
+
+flip_rotation = ImageDataGenerator(horizontal_flip=True, vertical_flip=True, rotation_range=45)
+augment_image(flip_rotation, img)
+
+#CNN
+remote = "https://storage.googleapis.com/download.tensorflow.org/example_images/flower_photos.tgz"
+
+# download & extract once
+archive_path = tf.keras.utils.get_file(
+    fname="flower_photos.tgz",
+    origin=remote,
+    extract=True
+)
+
+# archive_path is e.g. 'C:\\Users\\golde\\.keras\\datasets\\flower_photos.tgz'
+data_dir = os.path.join(os.path.dirname(archive_path), "flower_photos")
+directory = pathlib.Path(data_dir)
+
+image_count = len(list(directory.glob('*/*.jpg')))
+print(f"Total images: {image_count}")
+
+daisy_count = len(list(directory.glob('daisy/*.jpg')))
+print(f'Total daisy images: {daisy_count}')
+
+
+
+
