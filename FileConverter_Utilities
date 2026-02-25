@@ -1,9 +1,9 @@
 import nbformat
 from nbformat.v4 import new_notebook, new_code_cell
 
-with open('MarketingCampaignsAssessment', 'r', encoding='utf-8') as f:
+with open('Capstone-ML-Feb25', 'r', encoding='utf-8') as f:
 	src = f.read()
 
 nb = new_notebook(cells=[new_code_cell(src)])
-with open('MarketingCampaignsAssessment.ipynb', 'w', encoding='utf-8') as f:
+with open('Capstone-ML-Feb25.ipynb', 'w', encoding='utf-8') as f:
 	nbformat.write(nb, f)
