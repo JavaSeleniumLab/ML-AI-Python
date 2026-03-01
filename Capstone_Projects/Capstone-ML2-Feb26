@@ -1,0 +1,45 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import warnings
+warnings.filterwarnings('ignore')
+import scipy.stats as stats
+from sklearn.metrics.pairwise import cosine_similarity   
+import matplotlib.pyplot as plt
+import seaborn as sns
+import statistics as stats
+import operator 
+
+
+spotify_songs = pd.read_csv('Capstone_Projects/rolling_stones_spotify.csv')
+print(spotify_songs.head())
+print(spotify_songs.info())
+print(spotify_songs.isnull().sum())
+print("========Understand the distribution of song popularity ===========")
+sns.histplot(spotify_songs['popularity'], kde=True)
+plt.title('Distribution of Song Popularity')
+plt.xlabel('Popularity')
+plt.ylabel('Frequency')
+plt.show()
+print("========Identify the top 10 most popular songs ===========")
+top_songs = spotify_songs.sort_values(by='popularity', ascending=False).head(10)
+print(top_songs[['name', 'popularity']])
+print("========Analyze the relationship between song duration and popularity ===========")
+sns.scatterplot(x='duration_ms', y='popularity', data=spotify_songs)
+plt.title('Relationship between Song Duration and Popularity')
+plt.xlabel('Duration (ms)')
+plt.ylabel('Popularity')
+plt.show()
+print("========Perform clustering of songs based on their audio features ============")
+from sklearn.cluster import KMeans
+features = spotify_songs[['danceability', 'energy', 'loudness', 'speechiness', 'acousticness', 'instrumentalness', 'liveness', 'valence']]
+kmeans = KMeans(n_clusters=3, random_state=42)
+kmeans.fit(features)
+spotify_songs['Cluster'] = kmeans.labels_
+plt.figure(figsize=(10, 6))
+sns.scatterplot(x='danceability', y='energy', hue='Cluster', data=spotify_songs, palette='Set1')
+plt.title('Clustering of Songs Based on Audio Features')
+plt.xlabel('Danceability')
+plt.ylabel('Energy')
+plt.legend(title='Cluster')
+plt.show()

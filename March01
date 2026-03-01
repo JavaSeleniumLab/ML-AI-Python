@@ -1,0 +1,121 @@
+import csv
+
+import nltk
+import numpy as np
+import pandas as pd
+from tensorflow import keras
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences   
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+import matplotlib.pyplot as plt
+
+nltk.download('stopwords')
+
+stop_words = set(stopwords.words('english'))
+labels = []
+articles = []
+
+with open('bbc-text.csv', 'r', encoding='utf-8') as csvfile:
+    reader = csv.reader(csvfile, delimiter=',')
+    next(reader)  # skip header
+    for row in reader:
+        label, article = row
+        article = ' '.join([word for word in article.split() if word.lower() not in stop_words])
+        articles.append(article)
+        labels.append(label)   # ✅ MUST be inside the loop
+
+print("labels:", len(labels), "articles:", len(articles))
+
+from sklearn.preprocessing import LabelEncoder
+le = LabelEncoder()
+label_encoded = le.fit_transform(labels)
+print(label_encoded)
+
+num_classes = len(set(label_encoded))
+print(num_classes)
+
+train_size = int(0.8 * len(articles))
+train_articles = articles[:train_size]
+train_labels = label_encoded[:train_size]
+test_articles = articles[train_size:]
+test_labels = label_encoded[train_size:]
+
+validation_Articles = articles[train_size:train_size + int(0.1 * len(articles))]
+validation_labels = label_encoded[train_size:train_size + int(0.1 * len(articles))]
+print(len(train_articles), len(train_labels))
+print(len(test_articles), len(test_labels))
+print(len(validation_Articles), len(validation_labels))
+vocab_size = 5000
+embedding_dim = 64
+max_length = 200
+padding_type = 'post'
+trunc_type = 'post'
+oov_tok = '<OOV>'
+tokenizer = Tokenizer(num_words=5000, oov_token='<OOV>')
+tokenizer.fit_on_texts(train_articles)
+print(tokenizer.word_index)
+train_sequences = tokenizer.texts_to_sequences(train_articles)
+train_padded = pad_sequences(train_sequences, maxlen=100, padding='post', truncating='post')
+test_sequences = tokenizer.texts_to_sequences(test_articles)    
+test_padded = pad_sequences(test_sequences, maxlen=100, padding='post', truncating='post')
+validation_sequences = tokenizer.texts_to_sequences(validation_Articles)
+validation_padded = pad_sequences(validation_sequences, maxlen=100, padding='post', truncating='post')
+print(train_padded.shape)
+print(test_padded.shape)
+print(validation_padded.shape)
+
+#RNN
+# model = keras.Sequential([
+#     keras.layers.Embedding(vocab_size, embedding_dim, input_length=max_length),
+#     keras.layers.Bidirectional(keras.layers.LSTM(64)),
+#     keras.layers.Dense(64, activation='relu'),
+#     keras.layers.Dense(num_classes, activation='softmax')
+# ])
+
+model = keras.Sequential([
+ keras.layers.Embedding(vocab_size, embedding_dim),
+ keras.layers.SimpleRNN(embedding_dim),
+ keras.layers.Dense(embedding_dim, activation='relu'),
+ keras.layers.Dense(num_classes, activation='softmax')
+])
+
+print(model.summary())
+model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+history = model.fit(train_padded, train_labels, epochs=10, validation_data=(validation_padded, validation_labels))
+test_loss, test_acc = model.evaluate(test_padded, test_labels)
+print(f'Test accuracy: {test_acc}')
+print(f'Test loss: {test_loss}')
+
+val_loss, val_acc = model.evaluate(validation_padded, validation_labels)
+print(f'Validation accuracy: {val_acc}')
+print(f'Validation loss: {val_loss}')
+
+
+model = keras.Sequential([
+   keras.layers.Embedding(vocab_size, embedding_dim),
+   keras.layers.Bidirectional(keras.layers.SimpleRNN(embedding_dim)),
+   keras.layers.Dropout(0.5),
+   keras.layers.Dense(embedding_dim, activation='relu'),
+   keras.layers.Dropout(0.5),
+   keras.layers.Dense(num_classes, activation='softmax')
+])
+print(model.summary())
+model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+history = model.fit(train_padded, train_labels, epochs=10, validation_data=(validation_padded, validation_labels))
+test_loss, test_acc = model.evaluate(test_padded, test_labels)
+print(f'Test accuracy: {test_acc}')
+print(f'Test loss: {test_loss}')
+
+
+def plot_graphs(history, metric):
+    plt.plot(history.history[metric])
+    plt.plot(history.history['val_' + metric], '')
+    plt.xlabel("Epochs")
+    plt.ylabel(metric)
+    plt.legend([metric, 'val_' + metric])
+    plt.show()
+plot_graphs(history, 'accuracy')
+plot_graphs(history, 'loss')
+
+

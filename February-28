@@ -1,0 +1,57 @@
+import pathlib
+
+import numpy as np
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Activation, Dense
+from tensorflow.keras import layers
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from skimage import io
+import matplotlib.pyplot as plt
+import os
+from PIL import Image
+
+# Load CIFAR-10 dataset as an example
+(train_images, train_labels), (test_images, test_labels) = keras.datasets.cifar10.load_data()
+train_images_nn = train_images.astype('float32') / 255.0
+test_images_nn = test_images.astype('float32') / 255.0
+
+model = Sequential()
+model.add(layers.Conv2D(10, (3, 3), activation='relu', input_shape=(32,32,3)))
+model.add(layers.MaxPooling2D((2,2)))
+model.add(layers.Conv2D(32, (3, 3), activation='relu'))
+model.add(layers.MaxPooling2D((2,2)))
+model.add(layers.Flatten())
+model.add(layers.Dense(120, activation='relu'))
+model.add(layers.Dense(100, activation='relu'))
+model.add(layers.Dense(10, activation='softmax'))
+model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+history = model.fit(train_images_nn, train_labels, epochs=1, batch_size=4, validation_split=0.2)
+
+test_loss, test_acc = model.evaluate(test_images_nn, test_labels)
+print(f'Test accuracy: {test_acc}')
+print(f'Test loss: {test_loss}')
+
+correct_class = list(0. for i in range(10))
+total_class = list(0. for i in range(10))
+class_names = ['airplane', 'automobile', 'bird', 'cat', 'deer',
+			   'dog', 'frog', 'horse', 'ship', 'truck']
+prediction = model.predict(test_images_nn)
+predicted_labels = np.argmax(prediction, axis=1)
+for i in range(len(test_labels)):
+	label = test_labels[i][0]
+	correct_class[label] += (predicted_labels[i] == label)
+	total_class[label] += 1
+for i in range(10):
+	print('Accuracy of %s : %2d %%' % (class_names[i] , 100 * correct_class[i] / total_class[i]))
+	
+from tensorflow.keras.preprocessing import image
+img_path = 'aeroplane.jpg'
+img = image.load_img(img_path, target_size=(32, 32))
+img_array = image.img_to_array(img)
+img_array = np.expand_dims(img_array, axis=0) / 255.0
+prediction = model.predict(img_array)
+predicted_class = np.argmax(prediction, axis=1)
+print(f'Predicted class: {class_names[predicted_class[0]]}')
